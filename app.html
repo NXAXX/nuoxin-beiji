@@ -100,7 +100,22 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
   <div class="qa-list" id="qaList"><div class="empty">还没有提问</div></div>
 </div></div><div class="panel" id="panel-回答"><h2>回答 · 家长讲解</h2>
 <div class="qa-answer" id="qaAnswer">
-  <div class="empty">老师/家长的回答会显示在这里</div>
+  <div class="ans">
+    <div class="aq">Q：函数的对称性我不太懂</div>
+    <div class="aa">
+      <p><b>一、先抓住本质（一句话）</b><br>函数图像「对称」就是：图像翻折/旋转后能跟自己重合。判断对称性，核心是找到「变换规则」，把 x 代进去，看函数值变不变。</p>
+      <p><b>二、三类对称性，先记死</b></p>
+      <table style="width:100%;border-collapse:collapse;font-size:14px;">
+        <tr style="background:#f0f5ff;"><th style="border:1px solid #dcdfe6;padding:8px;">类型</th><th style="border:1px solid #dcdfe6;padding:8px;">图形含义</th><th style="border:1px solid #dcdfe6;padding:8px;">数学条件（判断核心）</th></tr>
+        <tr><td style="border:1px solid #dcdfe6;padding:8px;">关于 y 轴对称（偶函数）</td><td style="border:1px solid #dcdfe6;padding:8px;">左右翻折重合</td><td style="border:1px solid #dcdfe6;padding:8px;">f(-x) = f(x)</td></tr>
+        <tr><td style="border:1px solid #dcdfe6;padding:8px;">关于原点对称（奇函数）</td><td style="border:1px solid #dcdfe6;padding:8px;">旋转180°重合</td><td style="border:1px solid #dcdfe6;padding:8px;">f(-x) = -f(x)</td></tr>
+        <tr><td style="border:1px solid #dcdfe6;padding:8px;">关于 x=a 对称（轴对称）</td><td style="border:1px solid #dcdfe6;padding:8px;">左右平移后翻折重合</td><td style="border:1px solid #dcdfe6;padding:8px;">f(a-x) = f(a+x)</td></tr>
+      </table>
+      <p><b>三、怎么理解「代进去看变不变」</b><br>判断对称，永远是「代相反的数」看函数值关系：<br>• 偶函数 f(x)=x²：f(-2)=4、f(2)=4，相等 → 关于 y 轴对称 ✓<br>• 奇函数 f(x)=x³：f(-2)=-8、f(2)=8，互为相反数 → 关于原点对称 ✓<br>• 关于 x=2 对称：代 f(2-1) 和 f(2+1)，即 f(1) 和 f(3)，看是否相等</p>
+      <p><b>四、最容易混的两个点（重点）</b><br>1. 「关于 x=a 对称」≠ 偶函数。偶函数是「关于 x=0（y轴）对称」的特殊情况。关于 x=2 对称的函数不是偶函数，别套 f(-x)=f(x)，要套 f(2-x)=f(2+x)。<br>2. 奇偶性只对「定义域关于原点对称」才有意义。比如定义域是 (0,+∞) 的函数，根本没有奇偶性一说，因为 -x 不在定义域里。</p>
+      <p><b>五、快检题（可以自己验证）</b><br>已知 f(x+1) 是偶函数，问：f(x) 的图像关于哪条直线对称？<br><b>答案：关于直线 x=1 对称。</b><br>思路：f(x+1) 偶函数 → f(-x+1)=f(x+1) → 即 f(1-x)=f(1+x)，正是「关于 x=1 对称」的条件。</p>
+    </div>
+  </div>
 </div></div>
   </div>
 </div>
@@ -338,24 +353,44 @@ function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace
 var sendBtn = document.getElementById('sendBtn');
 sendBtn.addEventListener('click', submitQuestion);
 
-// Server酱推送：孩子的问题 -> 家长微信
+// 接收 Java 原生推送的真实结果
+window.__wechatResult = function(r) {
+  var tip = qaTip || document.getElementById('qaTip');
+  if (!tip) return;
+  if (r.indexOf('OK:') === 0) {
+    tip.textContent = '已发送到家长 ✓';
+  } else {
+    tip.textContent = '发送失败 · ' + r;
+  }
+};
+
+// 给 Java 回调用的全局函数（通过 window[name] 调用）
+window.__wechatCb = window.__wechatResult;
+
+// Server酱推送：孩子的问题 -> 家长微信（走 beiji:// 自定义 scheme，Java 拦截后用原生请求发送）
 function sendToWechat(text, ts) {
-  var url = 'https://sctapi.ftqq.com/' + SENDKEY + '.send';
-  var body = new URLSearchParams();
-  body.append('title', '【毛豆】新提问 ' + ts);
-  body.append('desp', text);
-  fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() })
-    .then(function(r){ return r.json(); })
-    .then(function(j){
-      if (j && j.code === 0) {
-        qaTip.textContent = '已发送到家长 ✓';
-      } else {
-        qaTip.textContent = '发送失败，已本地记录';
+  try {
+    var title = encodeURIComponent('【毛豆】新提问 ' + ts);
+    var desp = encodeURIComponent(text);
+    var cb = '__wechatCb';
+    var u = 'beiji://wechat?title=' + title + '&desp=' + desp + '&cb=' + cb;
+    // 用 iframe 触发，不打断页面状态
+    var f = document.createElement('iframe');
+    f.style.display = 'none';
+    f.src = u;
+    document.body.appendChild(f);
+    setTimeout(function(){ if (f.parentNode) f.parentNode.removeChild(f); }, 3000);
+    qaTip.textContent = '正在发送…';
+    // 双保险：3 秒后若无回调，提示超时
+    setTimeout(function(){
+      if (qaTip.textContent === '正在发送…') {
+        qaTip.textContent = '发送超时，已本地记录';
       }
-    })
-    .catch(function(){
-      qaTip.textContent = '网络异常，已本地记录';
-    });
+    }, 6000);
+  } catch (e) {
+    qaTip.textContent = '发送失败，已本地记录';
+  }
+  return;
 }
 
 // 初始化

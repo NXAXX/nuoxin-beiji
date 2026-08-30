@@ -314,8 +314,8 @@ if (SpeechRec) {
   });
 }
 
-// 提问提交：存本地列表 + 尝试上报（上报接口后面接）
-var GITHUB_TOKEN = '';  // 提问上报 token（后续填入）
+// 提问提交：本地记录 + 推送到家长微信（Server酱）
+var SENDKEY = 'SCT408036TfIB8WYWqE1fccXXkARNAk1Aa';
 function submitQuestion() {
   var t = qaText.value.trim();
   if (t === '') { qaTip.textContent = '请先输入问题'; return; }
@@ -328,9 +328,9 @@ function submitQuestion() {
   item.innerHTML = '<div class="qa-q">' + escHtml(t) + '</div><div class="qa-time">' + ts + '</div>';
   qaList.insertBefore(item, qaList.firstChild);
   qaText.value = '';
-  qaTip.textContent = '已提交 ✓';
-  // 上报到云端（后续接 GitHub）
-  reportQuestion(t, ts);
+  qaTip.textContent = '已提交，正在发送给家长…';
+  // 推送到家长微信（Server酱）
+  sendToWechat(t, ts);
 }
 function pad(n){ return n < 10 ? '0' + n : '' + n; }
 function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
@@ -338,43 +338,24 @@ function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace
 var sendBtn = document.getElementById('sendBtn');
 sendBtn.addEventListener('click', submitQuestion);
 
-// 上报提问：追加到 GitHub 的 questions.md（POST/PUT 内容）
-function reportQuestion(text, ts) {
-  if (GITHUB_TOKEN === '') {
-    qaTip.textContent = '已记录（云端上报待配置）';
-    return;
-  }
-  // 先 GET 当前 questions.md，再 PUT 追加
-  var line = '[' + ts + '] ' + text + '\n';
-  var api = 'https://api.github.com/repos/NXAXX/nuoxin-beiji/contents/questions.md';
-  fetch(api, { headers: { 'Authorization': 'Bearer ' + GITHUB_TOKEN, 'Accept': 'application/vnd.github+json' } })
+// Server酱推送：孩子的问题 -> 家长微信
+function sendToWechat(text, ts) {
+  var url = 'https://sctapi.ftqq.com/' + SENDKEY + '.send';
+  var body = new URLSearchParams();
+  body.append('title', '【毛豆】新提问 ' + ts);
+  body.append('desp', text);
+  fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() })
     .then(function(r){ return r.json(); })
-    .then(function(data){
-      var old = '';
-      var content = '';
-      var sha = '';
-      if (data.content) {
-        try { old = decodeURIComponent(escape(atob(data.content.replace(/\n/g,'')))); } catch(e){ old=''; }
-        sha = data.sha;
+    .then(function(j){
+      if (j && j.code === 0) {
+        qaTip.textContent = '已发送到家长 ✓';
+      } else {
+        qaTip.textContent = '发送失败，已本地记录';
       }
-      var newContent = old + line;
-      var body = {
-        message: '新增提问',
-        content: b64EncodeUnicode(newContent),
-        sha: sha,
-        branch: 'main'
-      };
-      return fetch(api, { method: 'PUT', headers: { 'Authorization': 'Bearer ' + GITHUB_TOKEN, 'Accept': 'application/vnd.github+json' }, body: JSON.stringify(body) });
-    })
-    .then(function(){
-      qaTip.textContent = '已提交并同步到云端 ✓';
     })
     .catch(function(){
-      qaTip.textContent = '同步失败，但已本地记录';
+      qaTip.textContent = '网络异常，已本地记录';
     });
-}
-function b64EncodeUnicode(str) {
-  return btoa(unescape(encodeURIComponent(str)));
 }
 
 // 初始化

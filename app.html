@@ -224,23 +224,28 @@ document.getElementById('tpClose').addEventListener('click', closeToc);
 // 目录点击：带 data-toggle 的章→折叠/展开节；data-jie 的节→跳转；普通章→跳转
 tocBody.addEventListener('click', function(e) {
   var el = e.target;
-  // 点章（有折叠）
-  if (el && el.getAttribute('data-toggle') === '1') {
-    var wrap = el.nextElementSibling;
-    var isOpen = el.classList.contains('open');
+  while (el && el !== tocBody && !el.getAttribute) el = el.parentNode;
+  // 向上找最近的带 data-toggle 的元素（章头）
+  var ch = e.target;
+  while (ch && ch !== tocBody && ch.getAttribute && ch.getAttribute('data-toggle') !== '1') ch = ch.parentNode;
+  if (ch && ch !== tocBody && ch.getAttribute && ch.getAttribute('data-toggle') === '1') {
+    var wrap = ch.nextElementSibling;
+    var isOpen = ch.classList.contains('open');
     if (isOpen) {
-      el.classList.remove('open');
+      ch.classList.remove('open');
       if (wrap) wrap.style.display = 'none';
     } else {
-      el.classList.add('open');
+      ch.classList.add('open');
       if (wrap) wrap.style.display = 'block';
     }
     return;
   }
-  // 点节
-  if (el && el.getAttribute('data-jie') !== null) {
-    var sidx = parseInt(el.getAttribute('data-sec'), 10);
-    var jidx = parseInt(el.getAttribute('data-jie'), 10);
+  // 向上找最近的带 data-jie 的元素（节）
+  var jie = e.target;
+  while (jie && jie !== tocBody && jie.getAttribute && jie.getAttribute('data-jie') === null) jie = jie.parentNode;
+  if (jie && jie !== tocBody && jie.getAttribute && jie.getAttribute('data-jie') !== null) {
+    var sidx = parseInt(jie.getAttribute('data-sec'), 10);
+    var jidx = parseInt(jie.getAttribute('data-jie'), 10);
     var secs = getSecs();
     if (secs[sidx]) {
       var jies = secs[sidx].querySelectorAll('.jie');
@@ -252,8 +257,10 @@ tocBody.addEventListener('click', function(e) {
     return;
   }
   // 普通章（无节）
-  if (el && el.getAttribute('data-sec') !== null) {
-    var idx = parseInt(el.getAttribute('data-sec'), 10);
+  var item = e.target;
+  while (item && item !== tocBody && (item.getAttribute === undefined || item.getAttribute('data-sec') === null)) item = item.parentNode;
+  if (item && item !== tocBody && item.getAttribute && item.getAttribute('data-sec') !== null) {
+    var idx = parseInt(item.getAttribute('data-sec'), 10);
     var secs2 = getSecs();
     if (secs2[idx]) {
       closeToc();

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>高中数学背记 · 必修第一册</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin:0; padding:0; height:100%; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+         background:#f4f5f7; color:#1f2329; font-size:16px; }
+  .topbar { position:fixed; top:0; left:0; right:0; height:52px; background:#1e6fff;
+            color:#fff; display:flex; align-items:center; padding:0 12px; z-index:20; }
+  .topbar .title { font-size:18px; font-weight:600; }
+  .topbar .sub { font-size:12px; opacity:.8; margin-left:8px; }
+  .menu-btn { font-size:24px; padding:4px 8px; cursor:pointer; user-select:none; }
+  .searchbox { position:fixed; top:52px; left:0; right:0; z-index:19; background:#fff;
+                padding:8px 12px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+  .searchbox input { width:100%; height:38px; border:1px solid #dcdfe6; border-radius:8px;
+                     padding:0 12px; font-size:15px; outline:none; }
+  .layout { display:flex; padding-top:106px; height:100%; }
+  .sidebar { width:250px; background:#fff; border-right:1px solid #eee; overflow-y:auto;
+             flex-shrink:0; padding:10px 0; }
+  .sidebar .bk { font-weight:700; color:#1e6fff; padding:10px 16px 4px; font-size:14px; }
+  .sidebar .ch { padding:9px 16px; font-size:14px; color:#333; cursor:pointer; border-left:3px solid transparent; }
+  .sidebar .ch.has:active, .sidebar .ch.has:hover { background:#eef3ff; }
+  .sidebar .ch.has { cursor:pointer; }
+  .sidebar .ch.no { color:#b0b5bd; cursor:default; }
+  .sidebar .ch.active { background:#eef3ff; border-left-color:#1e6fff; color:#1e6fff; font-weight:600; }
+  .content { flex:1; overflow-y:auto; padding:16px; }
+  .contentinner { max-width:760px; margin:0 auto; }
+  .chap { background:#fff; border-radius:10px; padding:18px; margin-bottom:14px; }
+  .chap h2 { margin:0 0 14px; font-size:18px; color:#1e6fff; border-left:4px solid #1e6fff; padding-left:10px; }
+  .kp { padding:10px 0; border-bottom:1px dashed #eee; }
+  .kp:last-child { border-bottom:none; }
+  .kp-t { font-weight:700; color:#1f2329; margin-bottom:5px; font-size:15px; }
+  .kp-c { color:#4b5563; line-height:1.7; font-size:15px; word-break:break-word; }
+  .mask, .side-mask { display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:15; }
+  .hint { position:fixed; bottom:16px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,.75);
+          color:#fff; padding:8px 16px; border-radius:20px; font-size:13px; z-index:30; display:none; }
+  @media (max-width: 760px) {
+    .sidebar { position:fixed; left:-260px; top:0; bottom:0; z-index:18; width:260px; }
+    .sidebar.open { left:0; }
+    .content { padding:12px; }
+  }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <span class="menu-btn" id="menuBtn">☰</span>
+    <span class="title">数学背记</span>
+    <span class="sub">必修第一册 · 人教A版</span>
+  </div>
+  <div class="searchbox"><input id="search" type="text" placeholder="搜索公式 / 关键词…" autocomplete="off"></div>
+  <div class="layout">
+    <div class="sidebar" id="sidebar">
+<div class="bk">必修第一册</div>
+<div class="ch has" data-ch="第一章 集合与常用逻辑用语">第一章 集合与常用逻辑用语</div>
+<div class="ch has" data-ch="第二章 一元二次函数、方程和不等式">第二章 一元二次函数、方程和不等式</div>
+<div class="ch has" data-ch="第三章 函数的概念与性质">第三章 函数的概念与性质</div>
+<div class="ch has" data-ch="第四章 指数函数与对数函数">第四章 指数函数与对数函数</div>
+<div class="ch has" data-ch="第五章 三角函数">第五章 三角函数</div>
+<div class="bk">必修第二册</div>
+<div class="ch no" data-ch="第六章 平面向量及其应用">第六章 平面向量及其应用</div>
+<div class="ch no" data-ch="第七章 复数">第七章 复数</div>
+<div class="ch no" data-ch="第八章 立体几何初步">第八章 立体几何初步</div>
+<div class="ch no" data-ch="第九章 统计">第九章 统计</div>
+<div class="ch no" data-ch="第十章 概率">第十章 概率</div>
+<div class="bk">选择性必修第一册</div>
+<div class="ch no" data-ch="第一章 空间向量与立体几何">第一章 空间向量与立体几何</div>
+<div class="ch no" data-ch="第二章 直线和圆的方程">第二章 直线和圆的方程</div>
+<div class="ch no" data-ch="第三章 圆锥曲线的方程">第三章 圆锥曲线的方程</div>
+<div class="bk">选择性必修第二册</div>
+<div class="ch no" data-ch="第四章 数列">第四章 数列</div>
+<div class="ch no" data-ch="第五章 一元函数的导数及其应用">第五章 一元函数的导数及其应用</div>
+<div class="bk">选择性必修第三册</div>
+<div class="ch no" data-ch="第六章 计数原理">第六章 计数原理</div>
+<div class="ch no" data-ch="第七章 随机变量及其分布">第七章 随机变量及其分布</div>
+<div class="ch no" data-ch="第八章 成对数据的统计分析">第八章 成对数据的统计分析</div>
+    </div>
+    <div class="side-mask" id="sideMask"></div>
+    <div class="content" id="content">
+      <div class="contentinner">
+<section class="chap" id="c0" data-title="第一章 集合与常用逻辑用语"><h2>第一章 集合与常用逻辑用语</h2><div class="kp"><div class="kp-t">常用数集符号</div><div class="kp-c">自然数集 N（含0）；正整数集 N* 或 N₊；整数集 Z；有理数集 Q；实数集 R；复数集 C</div></div><div class="kp"><div class="kp-t">集合的表示法</div><div class="kp-c">列举法（{ }列出元素）、描述法（{x | x 满足的性质}）</div></div><div class="kp"><div class="kp-t">集合三要素</div><div class="kp-c">确定性、互异性、无序性</div></div><div class="kp"><div class="kp-t">子集与真子集</div><div class="kp-c">若 A 中任意元素都在 B 中，则 A ⊆ B。若 A ⊆ B 且 A ≠ B，则 A ⊊ B；空集 ∅ 是任何集合的子集，是任何非空集合的真子集</div></div><div class="kp"><div class="kp-t">子集个数（重要）</div><div class="kp-c">含 n 个元素的集合，子集 2ⁿ 个，真子集 (2ⁿ−1) 个，非空子集 (2ⁿ−1) 个，非空真子集 (2ⁿ−2) 个</div></div><div class="kp"><div class="kp-t">交集、并集、补集</div><div class="kp-c">A∩B = {x | x∈A 且 x∈B}；A∪B = {x | x∈A 或 x∈B}；∁ᵤA = {x | x∈U 且 x∉A}</div></div><div class="kp"><div class="kp-t">德摩根定律</div><div class="kp-c">∁ᵤ(A∩B) = (∁ᵤA)∪(∁ᵤB)；∁ᵤ(A∪B) = (∁ᵤA)∩(∁ᵤB)</div></div><div class="kp"><div class="kp-t">充分条件与必要条件</div><div class="kp-c">若 p⇒q，则 p 是 q 的充分条件，q 是 p 的必要条件。p⇔q 则互为充要条件。口诀：小范围⇒大范围（小是大充分，大是小必要）</div></div><div class="kp"><div class="kp-t">全称量词与存在量词及其否定</div><div class="kp-c">全称命题 ∀x∈M, p(x) 的否定是 ∃x∈M, ¬p(x)；存在命题 ∃x∈M, p(x) 的否定是 ∀x∈M, ¬p(x)。口诀：改量词、否结论</div></div></section>
+<section class="chap" id="c1" data-title="第二章 一元二次函数、方程和不等式"><h2>第二章 一元二次函数、方程和不等式</h2><div class="kp"><div class="kp-t">等式性质与不等式性质</div><div class="kp-c">a&gt;b ⇔ a−b&gt;0；对称性 a&gt;b⇔b&lt;a；传递性 a&gt;b,b&gt;c⇒a&gt;c；可加性 a&gt;b⇒a+c&gt;b+c；可乘性 a&gt;b,c&gt;0⇒ac&gt;bc（c&lt;0 时方向改变）</div></div><div class="kp"><div class="kp-t">基本不等式（均值不等式）</div><div class="kp-c">若 a,b&gt;0，则 (a+b)/2 ≥ √(ab)，当且仅当 a=b 时取等号。口诀：一正、二定、三相等。变式：a²+b²≥2ab；ab ≤ [(a+b)/2]²</div></div><div class="kp"><div class="kp-t">求最值两类</div><div class="kp-c">积定和最小：xy 为定值 p 时，x+y 最小为 2√p；和定积最大：x+y 为定值 S 时，xy 最大为 S²/4</div></div><div class="kp"><div class="kp-t">一元二次方程求根公式</div><div class="kp-c">ax²+bx+c=0 (a≠0) 的解 x = [−b ± √(b²−4ac)] / (2a)</div></div><div class="kp"><div class="kp-t">判别式</div><div class="kp-c">Δ = b²−4ac；Δ&gt;0 两个不等实根；Δ=0 两个相等实根（重根）；Δ&lt;0 无实根</div></div><div class="kp"><div class="kp-t">韦达定理（根与系数关系）</div><div class="kp-c">若 x₁,x₂ 是 ax²+bx+c=0 的两根，则 x₁+x₂ = −b/a，x₁x₂ = c/a</div></div><div class="kp"><div class="kp-t">解一元二次不等式</div><div class="kp-c">ax²+bx+c&gt;0 (a&gt;0)：两根之外（大于取两边）；ax²+bx+c&lt;0 (a&gt;0)：两根之间（小于取中间）。a&lt;0 时先变号</div></div><div class="kp"><div class="kp-t">分式不等式</div><div class="kp-c">f(x)/g(x)&gt;0 ⇔ f(x)·g(x)&gt;0；f(x)/g(x)≥0 ⇔ f(x)·g(x)≥0 且 g(x)≠0</div></div></section>
+<section class="chap" id="c2" data-title="第三章 函数的概念与性质"><h2>第三章 函数的概念与性质</h2><div class="kp"><div class="kp-t">函数概念</div><div class="kp-c">设 A、B 是非空数集，若对 A 中每个元素 x，按确定的对应关系 f，B 中都有唯一 y 与之对应，则称 f:A→B 为函数。x 自变量，定义域 A，值域 {f(x)|x∈A}</div></div><div class="kp"><div class="kp-t">函数三要素</div><div class="kp-c">定义域、值域、对应关系（两个函数相等 ⇔ 三要素都相同）</div></div><div class="kp"><div class="kp-t">函数定义域（常见限制）</div><div class="kp-c">分母≠0；偶次根号内≥0；对数真数&gt;0；f(x)⁰ 的底数≠0；正切函数 x≠π/2+kπ</div></div><div class="kp"><div class="kp-t">单调性定义</div><div class="kp-c">对区间 D 内任意 x₁&lt;x₂：若 f(x₁)&lt;f(x₂) 则增函数；若 f(x₁)&gt;f(x₂) 则减函数。用于比较大小和解不等式</div></div><div class="kp"><div class="kp-t">单调性运算性质</div><div class="kp-c">增+增=增，减+减=减，增−减=增，减−增=减。复合函数单调性：同增异减</div></div><div class="kp"><div class="kp-t">奇偶性定义</div><div class="kp-c">f(−x)=f(x) 为偶函数（图象关于 y 轴对称）；f(−x)=−f(x) 为奇函数（图象关于原点对称）。前提：定义域关于原点对称</div></div><div class="kp"><div class="kp-t">奇偶性性质</div><div class="kp-c">奇±奇=奇，偶±偶=偶，奇×奇=偶，偶×偶=偶，奇×偶=奇；奇函数若在 x=0 处有定义则 f(0)=0</div></div><div class="kp"><div class="kp-t">幂函数</div><div class="kp-c">形如 y = x^α 的函数。α&gt;0 时过 (0,0)、(1,1)，在第一象限递增；α&lt;0 时过 (1,1)，以坐标轴为渐近线递减。常见：y=x、y=x²、y=x³、y=x^(1/2)、y=x^(−1)</div></div><div class="kp"><div class="kp-t">一次函数与二次函数</div><div class="kp-c">一次 y=kx+b (k≠0)。二次 y=ax²+bx+c (a≠0)，顶点 (−b/2a, (4ac−b²)/4a)，对称轴 x=−b/2a；a&gt;0 开口向上有最小值，a&lt;0 开口向下有最大值</div></div><div class="kp"><div class="kp-t">分段函数</div><div class="kp-c">不同区间有不同解析式，求值时先判断自变量落在哪个区间</div></div></section>
+<section class="chap" id="c3" data-title="第四章 指数函数与对数函数"><h2>第四章 指数函数与对数函数</h2><div class="kp"><div class="kp-t">指数幂运算法则</div><div class="kp-c">aᵐ·aⁿ = aᵐ⁺ⁿ；aᵐ÷aⁿ = aᵐ⁻ⁿ；(aᵐ)ⁿ = aᵐⁿ；(ab)ⁿ = aⁿbⁿ；(a/b)ⁿ = aⁿ/bⁿ（a&gt;0）</div></div><div class="kp"><div class="kp-t">根式与分数指数幂</div><div class="kp-c">ⁿ√(aᵐ) = a^(m/n)；a⁰=1 (a≠0)；a^(−n)=1/aⁿ</div></div><div class="kp"><div class="kp-t">指数函数</div><div class="kp-c">y=aˣ (a&gt;0 且 a≠1)：a&gt;1 增函数，0&lt;a&lt;1 减函数；恒过 (0,1)；定义域 R，值域 (0,+∞)</div></div><div class="kp"><div class="kp-t">对数定义（指数对数互化）</div><div class="kp-c">aᵇ=N ⇔ b=logₐN（a&gt;0 且 a≠1，N&gt;0）</div></div><div class="kp"><div class="kp-t">对数恒等式</div><div class="kp-c">a^(logₐN) = N；logₐ1 = 0；logₐa = 1</div></div><div class="kp"><div class="kp-t">对数运算法则</div><div class="kp-c">logₐ(MN) = logₐM + logₐN；logₐ(M/N) = logₐM − logₐN；logₐ(Mⁿ) = n·logₐM</div></div><div class="kp"><div class="kp-t">换底公式</div><div class="kp-c">logₐb = log꜀b / log꜀a；推论 logₐb = 1/logᵦa</div></div><div class="kp"><div class="kp-t">对数函数</div><div class="kp-c">y=logₐx (a&gt;0 且 a≠1)：a&gt;1 增函数，0&lt;a&lt;1 减函数；恒过 (1,0)；定义域 (0,+∞)，值域 R</div></div><div class="kp"><div class="kp-t">指数函数与对数函数互为反函数</div><div class="kp-c">y=aˣ 与 y=logₐx 互为反函数，图象关于直线 y=x 对称</div></div><div class="kp"><div class="kp-t">指数/对数不等式</div><div class="kp-c">a&gt;1 时 aˣ 单调递增：aˣ&lt;aʸ ⇔ x&lt;y；0&lt;a&lt;1 时单调递减。对数不等式同理（真数必须&gt;0）</div></div></section>
+<section class="chap" id="c4" data-title="第五章 三角函数"><h2>第五章 三角函数</h2><div class="kp"><div class="kp-t">角度与弧度换算</div><div class="kp-c">180° = π 弧度；1° = π/180；1 弧度 = (180/π)° ≈ 57.3°</div></div><div class="kp"><div class="kp-t">弧长与扇形面积</div><div class="kp-c">弧长 l = |α|·r；扇形面积 S = (1/2)l·r = (1/2)|α|r²</div></div><div class="kp"><div class="kp-t">任意角三角函数定义</div><div class="kp-c">角 α 终边与单位圆交点 P(x,y)，则 sinα=y，cosα=x，tanα=y/x。终边上任一点 P(x,y) 距原点 r：sinα=y/r，cosα=x/r，tanα=y/x</div></div><div class="kp"><div class="kp-t">各象限三角函数符号</div><div class="kp-c">口诀：一全正、二正弦、三正切、四余弦（只有该象限对应函数为正）</div></div><div class="kp"><div class="kp-t">同角三角函数基本关系</div><div class="kp-c">平方关系 sin²α+cos²α=1；商数关系 tanα = sinα/cosα</div></div><div class="kp"><div class="kp-t">诱导公式</div><div class="kp-c">口诀：奇变偶不变，符号看象限。sin(−α)=−sinα、cos(−α)=cosα；sin(π−α)=sinα、cos(π−α)=−cosα；sin(π+α)=−sinα 等</div></div><div class="kp"><div class="kp-t">特殊角三角函数值</div><div class="kp-c">sin：0°=0, 30°=1/2, 45°=√2/2, 60°=√3/2, 90°=1；cos 与之对应递减；tan：0, √3/3, 1, √3, 不存在</div></div><div class="kp"><div class="kp-t">正弦函数 y=sinx</div><div class="kp-c">定义域 R，值域 [−1,1]，周期 2π，奇函数；单调增区间 [−π/2+2kπ, π/2+2kπ]；x=π/2+2kπ 取最大 1，x=−π/2+2kπ 取最小 −1</div></div><div class="kp"><div class="kp-t">余弦函数 y=cosx</div><div class="kp-c">定义域 R，值域 [−1,1]，周期 2π，偶函数；单调增区间 [−π+2kπ, 2kπ]；x=2kπ 取最大 1，x=π+2kπ 取最小 −1</div></div><div class="kp"><div class="kp-t">正切函数 y=tanx</div><div class="kp-c">定义域 x≠π/2+kπ，值域 R，周期 π，奇函数；在每个区间 (−π/2+kπ, π/2+kπ) 上递增</div></div><div class="kp"><div class="kp-t">y=Asin(ωx+φ) 图象与性质</div><div class="kp-c">振幅 |A|；周期 T=2π/|ω|；相位 ωx+φ，初相 φ。A 影响纵向伸缩，ω 影响横向伸缩（周期），φ 影响左右平移（左加右减）</div></div><div class="kp"><div class="kp-t">三角恒等变换公式</div><div class="kp-c">两角和差、二倍角、辅助角等公式（详见后续三角恒等变换专题，本章为三角函数基础图像与性质）</div></div></section>
+      </div>
+    </div>
+  </div>
+  <div class="hint" id="hint"></div>
+
+<script>
+  var sidebar = document.getElementById('sidebar');
+  var sideMask = document.getElementById('sideMask');
+  var menuBtn = document.getElementById('menuBtn');
+  var search = document.getElementById('search');
+  var hint = document.getElementById('hint');
+  var chElems = sidebar.querySelectorAll('.ch.has');
+  var chapElems = document.querySelectorAll('.chap');
+
+  // 章节标题 -> 章节元素 索引（预建映射，避免每次点击全遍历）
+  var chByTitle = {};
+  for (var i=0;i<chapElems.length;i++){
+    chByTitle[chapElems[i].getAttribute('data-title')] = chapElems[i];
+  }
+
+  function showHint(t) {
+    hint.textContent = t; hint.style.display = 'block';
+    clearTimeout(showHint._t); showHint._t = setTimeout(function(){ hint.style.display='none'; }, 1200);
+  }
+
+  // 章节点击：瞬时跳转（不用 smooth，避免卡顿）
+  for (var i=0;i<chElems.length;i++){
+    (function(el){
+      el.addEventListener('click', function() {
+        var title = el.getAttribute('data-ch');
+        var target = chByTitle[title];
+        if (target) { target.scrollIntoView(); }
+        sidebar.classList.remove('open');
+        sideMask.style.display = 'none';
+        for (var j=0;j<chElems.length;j++) chElems[j].classList.remove('active');
+        el.classList.add('active');
+      });
+    })(chElems[i]);
+  }
+
+  menuBtn.addEventListener('click', function() {
+    sidebar.classList.add('open'); sideMask.style.display = 'block';
+  });
+  sideMask.addEventListener('click', function() {
+    sidebar.classList.remove('open'); sideMask.style.display = 'none';
+  });
+
+  // 搜索：回车才过滤一次（不做实时 input 重渲染，避免卡顿）
+  function doSearch() {
+    var q = search.value.trim().toLowerCase();
+    var any = false;
+    for (var i=0;i<chapElems.length;i++){
+      var ch = chapElems[i];
+      var kps = ch.querySelectorAll('.kp');
+      var show = false;
+      for (var j=0;j<kps.length;j++){
+        var t = kps[j].textContent.toLowerCase();
+        var hit = (q === '') || (t.indexOf(q) !== -1);
+        kps[j].style.display = hit ? '' : 'none';
+        if (hit) show = true;
+      }
+      ch.style.display = show ? '' : 'none';
+      if (show) any = true;
+    }
+    if (!any && q !== '') showHint('未找到「' + q + '」');
+  }
+  search.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ doSearch(); } });
+  search.addEventListener('blur', function(){ doSearch(); });
+</script>
+</body>
+</html>

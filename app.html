@@ -329,19 +329,52 @@ if (SpeechRec) {
   });
 }
 
-// 提问提交：本地记录 + 推送到家长微信（Server酱）
+// 提问提交：本地记录(localStorage 持久化) + 推送到家长微信（Server酱）
 var SENDKEY = 'SCT408036TfIB8WYWqE1fccXXkARNAk1Aa';
+var QA_STORE_KEY = 'beiji_questions';
+
+// 从 localStorage 读历史提问（持久化，App 重开不丢）
+function loadQuestions() {
+  var list = [];
+  try {
+    var raw = localStorage.getItem(QA_STORE_KEY);
+    if (raw) { list = JSON.parse(raw); }
+  } catch (e) { list = []; }
+  return list;
+}
+
+// 保存历史提问到 localStorage
+function saveQuestions(list) {
+  try {
+    localStorage.setItem(QA_STORE_KEY, JSON.stringify(list));
+  } catch (e) {}
+}
+
+// 渲染历史提问列表
+function renderQuestions() {
+  var list = loadQuestions();
+  if (!list || list.length === 0) {
+    qaList.innerHTML = '<div class="empty">还没有提问</div>';
+    return;
+  }
+  var html = '';
+  for (var i = list.length - 1; i >= 0; i--) {
+    html += '<div class="qa-item"><div class="qa-q">' + escHtml(list[i].q) + '</div><div class="qa-time">' + escHtml(list[i].t) + '</div></div>';
+  }
+  qaList.innerHTML = html;
+}
+
 function submitQuestion() {
   var t = qaText.value.trim();
   if (t === '') { qaTip.textContent = '请先输入问题'; return; }
   var time = new Date();
   var ts = time.getFullYear() + '-' + pad(time.getMonth()+1) + '-' + pad(time.getDate()) + ' ' + pad(time.getHours()) + ':' + pad(time.getMinutes());
-  // 添加到本地列表
-  if (qaList.querySelector('.empty')) qaList.innerHTML = '';
-  var item = document.createElement('div');
-  item.className = 'qa-item';
-  item.innerHTML = '<div class="qa-q">' + escHtml(t) + '</div><div class="qa-time">' + ts + '</div>';
-  qaList.insertBefore(item, qaList.firstChild);
+  // 写入 localStorage（持久化）
+  var list = loadQuestions();
+  list.push({ q: t, t: ts });
+  saveQuestions(list);
+  // 重新渲染列表
+  renderQuestions();
   qaText.value = '';
   qaTip.textContent = '已提交，正在发送给家长…';
   // 推送到家长微信（Server酱）
@@ -394,6 +427,7 @@ function sendToWechat(text, ts) {
 }
 
 // 初始化
+renderQuestions();
 switchTo('数学');
 </script>
 </body>

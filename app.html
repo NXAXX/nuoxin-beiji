@@ -83,9 +83,12 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
 .qa-list { margin-top:14px; }
 .qa-item { margin-bottom:14px; }
 .qa-item .qa-q { background:#eef3ff; border-radius:10px; padding:10px 12px; font-size:14px; color:#1f2329; text-align:right; }
-.qa-item .qa-a { background:#f8f9fb; border-radius:10px; padding:12px; font-size:14px; color:#333; line-height:1.7; margin-top:6px; white-space:pre-wrap; word-break:break-word; }
+.qa-item .qa-a { background:#f8f9fb; border-radius:10px; padding:12px; font-size:14px; color:#333; line-height:1.7; margin-top:6px; word-break:break-word; overflow-wrap:anywhere; }
 .qa-item .qa-a.ai-thinking { color:#8a94a6; font-style:italic; }
 .qa-item .qa-a .m { color:#1e6fff; font-family:Georgia,'Times New Roman',serif; }
+.qa-item .qa-a pre { background:#f0f2f5; border-radius:6px; padding:8px 10px; overflow-x:auto; margin:6px 0; }
+.qa-item .qa-a code { font-family:Consolas,Monaco,monospace; font-size:13px; }
+.qa-item .qa-a .katex { font-size:1.05em; }
 .qa-item .qa-time { font-size:11px; color:#b0b5bd; margin-top:4px; }
 /* KaTeX 公式排版（内联，离线） */
 /* 语文默写板块 */
@@ -466,32 +469,49 @@ function renderQuestions() {
   qaList.innerHTML = html;
 }
 
-// 轻量 Markdown → HTML（不加 KaTeX）
+// Markdown + KaTeX 公式渲染（回答里的 $...$ / $$...$$ 渲染成课本级公式）
 function fmtAi(s) {
-  var out = escHtml(s);
-  // 1. 代码块 ```...``` → 保留原样但换行
-  out = out.replace(/```([\s\S]*?)```/g, function(m, c){ return '\n' + c + '\n'; });
-  // 2. 行内公式 $...$ → 蓝色字
-  out = out.replace(/\$([^$\n]+?)\$/g, '<span class="m">$1</span>');
-  // 3. 加粗 **...** → <b>
+  // 只转义 HTML 特殊字符，保留换行（后续再处理换行）
+  var out = s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // 1. 代码块 ```...``` → 先占位（避免内部被其他规则干扰）
+  var codeBlocks = [];
+  out = out.replace(/```([\s\S]*?)```/g, function(m, c){ codeBlocks.push(c); return '\u0000C' + (codeBlocks.length-1) + '\u0000'; });
+  // 2. 独立公式 $$...$$ → 占位
+  var blocks = [];
+  out = out.replace(/\$\$([\s\S]+?)\$\$/g, function(m, c){ blocks.push(c); return '\u0000B' + (blocks.length-1) + '\u0000'; });
+  // 3. 行内公式 $...$ → 占位（后续用 KaTeX 渲染）
+  var inlines = [];
+  out = out.replace(/\$([^$\n]+?)\$/g, function(m, c){ inlines.push(c); return '\u0000I' + (inlines.length-1) + '\u0000'; });
+  // 4. 加粗 **...**
   out = out.replace(/\*\*([^*\n]+?)\*\*/g, '<b>$1</b>');
-  // 4. 标题 ### / ## / # → <b>
+  // 5. 标题 # / ## / ###
   out = out.replace(/^#{1,3}\s*(.*)$/gm, '<b>$1</b>');
-  // 5. 列表 - / * → 点
+  // 6. 列表 - / * / 数字
   out = out.replace(/^(\s*)[-•*]\s+/gm, '$1· ');
-  // 6. 兜底：把 AI 可能残留的 ^2 / ^3 / ^n 上标记号转成真上标字符
-  out = out.replace(/\^2/g, '\u00B2');
-  out = out.replace(/\^3/g, '\u00B3');
-  // 把 _（下标/下限）后面的 {数字} 花括号去掉，保留数字（如 _{0}^{1} → 简单化）
-  out = out.replace(/_{([^{}]+?)}/g, '$1');
-  out = out.replace(/\^\{([^{}]+?)\}/g, '$1');
-  // 残留的 ^ 和 _ 单独符号去掉（不影响普通文字）
-  out = out.replace(/\^/g, '');
-  // 智能平方上标：紧跟在字母/右括号后的裸 2、3 → ²、³
-  out = out.replace(/([A-Za-z\)\]])(2)/g, '$1²');
-  out = out.replace(/([A-Za-z\)\]])(3)/g, '$1³');
-  // 7. 换行 → <br>
+  // 7. 换行
   out = out.replace(/\n/g, '<br>');
+  // 8. 代码块占位换回
+  out = out.replace(/\u0000C(\d+)\u0000/g, function(m, i){ return '<pre><code>' + codeBlocks[parseInt(i,10)] + '</code></pre>'; });
+  // 9. 行内公式占位换回 KaTeX HTML（有离线 KaTeX 才渲染，否则退化为原样文本）
+  out = out.replace(/\u0000I(\d+)\u0000/g, function(m, i){
+    var tex = inlines[parseInt(i,10)];
+    try {
+      if (typeof katex !== 'undefined') {
+        return katex.renderToString(tex, { throwOnError: false, displayMode: false });
+      }
+    } catch (e) {}
+    return '<span class="m">' + tex + '</span>';
+  });
+  // 10. 独立公式占位换回 KaTeX
+  out = out.replace(/\u0000B(\d+)\u0000/g, function(m, i){
+    var tex = blocks[parseInt(i,10)];
+    try {
+      if (typeof katex !== 'undefined') {
+        return katex.renderToString(tex, { throwOnError: false, displayMode: true });
+      }
+    } catch (e) {}
+    return '<div style="text-align:center;margin:8px 0">' + tex + '</div>';
+  });
   return out;
 }
 
@@ -547,11 +567,23 @@ function sendToWechat(text, ts) {
 }
 
 // 问 AI：走 beiji://ai 自定义 scheme，Java 原生请求 DeepSeek，答案回填到对话
+// 携带历史对话（hist），让 AI 能联系上文（多轮上下文）
 function askAi(text, idx) {
   try {
     var q = encodeURIComponent(text);
+    // 取历史对话（排除刚插入的那条新问题），转成 [{role,content}] 传给 Java
+    var list = loadQuestions();
+    var histArr = [];
+    for (var i = 0; i < list.length - 1; i++) {
+      var it = list[i];
+      if (it.q) histArr.push({ role: 'user', content: it.q });
+      if (it.a && it.a.indexOf('AI') !== 0 && it.a.indexOf('问 AI') !== 0) {
+        histArr.push({ role: 'assistant', content: it.a });
+      }
+    }
+    var hist = encodeURIComponent(JSON.stringify(histArr));
     var cb = '__aiCb';
-    var u = 'beiji://ai?q=' + q + '&idx=' + idx + '&cb=' + cb;
+    var u = 'beiji://ai?q=' + q + '&idx=' + idx + '&hist=' + hist + '&cb=' + cb;
     var f = document.createElement('iframe');
     f.style.display = 'none';
     f.src = u;

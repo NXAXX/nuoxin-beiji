@@ -108,7 +108,11 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
 .qa-bar .send { flex:1; height:40px; border:none; border-radius:8px; background:#1e6fff; color:#fff; font-size:15px; cursor:pointer; }
 .qa-bar .send-dad { background:#f59e0b; }
 .qa-tip { margin-top:10px; font-size:13px; color:#8a94a6; min-height:18px; }
-.qa-list { margin-top:14px; }
+.qa-list-head { display:flex; justify-content:space-between; align-items:center; margin-top:14px; }
+.qa-list-title { font-size:13px; color:#1f2329; font-weight:600; }
+.qa-clear { font-size:13px; color:#c0392b; background:none; border:1px solid #e0a0a0; border-radius:6px; padding:3px 10px; cursor:pointer; }
+.qa-clear:active { background:#fbeaea; }
+.qa-list { margin-top:10px; }
 .qa-item { margin-bottom:14px; }
 .qa-item .qa-q { background:#eef3ff; border-radius:10px; padding:10px 12px; font-size:14px; color:#1f2329; text-align:right; }
 .qa-item .qa-a { background:#f8f9fb; border-radius:10px; padding:12px; font-size:14px; color:#333; line-height:1.7; margin-top:6px; word-break:break-word; overflow-wrap:anywhere; }
@@ -153,7 +157,7 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
 </head>
 <body>
 <div class="top">
-  <div class="title"><span class="menu-btn" id="menuBtn">☰</span>毛豆速记本 v2.10</div>
+  <div class="title"><span class="menu-btn" id="menuBtn">☰</span>毛豆速记本 v2.11</div>
   <div class="tabs" id="tabs"><button class="tab" data-subj="数学">数学</button><button class="tab" data-subj="物理">物理</button><button class="tab" data-subj="化学">化学</button><button class="tab" data-subj="生物">生物</button><button class="tab" data-subj="语文">语文</button><button class="tab" data-subj="英语">英语</button><button class="tab" data-subj="AI问答">AI 问答</button></div>
 </div>
 <div class="search">
@@ -177,6 +181,7 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
     <button class="send" id="sendBtn">问 AI</button>
   </div>
   <div class="qa-tip" id="qaTip">💡 想语音？点输入框用键盘 🎤 说话。不懂的知识点点【问 AI】，对 APP 的需求/错误点【问老登】发给我。</div>
+  <div class="qa-list-head"><span class="qa-list-title">问答记录</span><button class="qa-clear" id="clearBtn">🗑 清空</button></div>
   <div class="qa-list" id="qaList"><div class="empty">还没有记录，把不懂的写进来问 AI 吧</div></div>
 </div></div>
   </div>
@@ -573,6 +578,20 @@ function renderQuestions() {
     html += '</div>';
   }
   qaList.innerHTML = html;
+  updateClearBtn();
+}
+
+// 清空所有 AI 问答历史（含「问老登」意见记录）
+function clearQuestions() {
+  if (!window.confirm('确定要清空所有问答记录吗？清空后不可恢复。')) return;
+  try { localStorage.removeItem(QA_STORE_KEY); } catch (e) {}
+  renderQuestions();
+}
+
+// 根据是否有记录显示/隐藏清空按钮
+function updateClearBtn() {
+  var btn = document.getElementById('clearBtn');
+  if (btn) { btn.style.display = loadQuestions().length > 0 ? '' : 'none'; }
 }
 
 // 运行时公式修复：± / ∓（正负号）在 KaTeX 数学字体下减号横杠会错位，强制系统字体
@@ -723,6 +742,11 @@ sendBtn.addEventListener('click', submitQuestion);
 
 var dadBtn = document.getElementById('dadBtn');
 if (dadBtn) { dadBtn.addEventListener('click', submitToDad); }
+
+// 一键清空问答记录
+var clearBtn = document.getElementById('clearBtn');
+if (clearBtn) { clearBtn.addEventListener('click', clearQuestions); }
+updateClearBtn();
 
 // 接收 Java 原生推送的真实结果（微信推送）
 window.__wechatResult = function(r) {

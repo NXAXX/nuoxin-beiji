@@ -153,7 +153,7 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
 </head>
 <body>
 <div class="top">
-  <div class="title"><span class="menu-btn" id="menuBtn">☰</span>毛豆速记本 v2.08</div>
+  <div class="title"><span class="menu-btn" id="menuBtn">☰</span>毛豆速记本 v2.09</div>
   <div class="tabs" id="tabs"><button class="tab" data-subj="数学">数学</button><button class="tab" data-subj="物理">物理</button><button class="tab" data-subj="化学">化学</button><button class="tab" data-subj="生物">生物</button><button class="tab" data-subj="语文">语文</button><button class="tab" data-subj="英语">英语</button><button class="tab" data-subj="AI问答">AI 问答</button></div>
 </div>
 <div class="search">
@@ -583,18 +583,18 @@ function fixPmHtml(h) {
 
 // ≠ 不等于号：KaTeX 渲染成「PUA 字符 + rlap/vbox 叠加的斜杠」，华为/荣耀 WebView 斜杠错位
 // 结构：<span class="mrel"><span class="mrel"><span class="mord vbox">...rlap...PUA...fix...</span></span><span class="mrel">=</span></span>
-var NOT_RE_JS = /<span class="mrel"><span class="mrel"><span class="mord vbox">[\s\S]*?<span class="fix"><\/span>[\s\S]*?<span class="mrel">=<\/span><\/span>/g;
+var NOT_RE_JS = /<span class="mrel"><span class="mrel"><span class="mord vbox"><span class="thinbox"><span class="rlap"><span class="strut" style="[^"]*"><\/span><span class="inner"><span class="mord"><span class="mrel">\uE020<\/span><\/span><\/span><span class="fix"><\/span><\/span><\/span><\/span><\/span><span class="mrel">=<\/span><\/span>/g;
 function fixNotHtml(h) {
   return h.replace(NOT_RE_JS, '<span class="mrel" style="font-family:system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif">≠</span>');
 }
 // ∉ 不属于号：KaTeX 渲染成「∈ + llap 叠加的 /」，同样错位
-var NOTIN_RE_JS = /<span class="mrel"><span class="mord"><span class="mrel">∈<\/span><\/span><span class="mord vbox">[\s\S]*?<span class="mord">\/<\/span>[\s\S]*?<span class="fix"><\/span><\/span><\/span><\/span><\/span>/g;
+var NOTIN_RE_JS = /<span class="mrel"><span class="mord"><span class="mrel">∈<\/span><\/span><span class="mord vbox"><span class="thinbox"><span class="llap"><span class="strut" style="[^"]*"><\/span><span class="inner"><span class="mord"><span class="mord">\/<\/span><\/span><\/span><span class="fix"><\/span><\/span><\/span><\/span><\/span>/g;
 function fixNotinHtml(h) {
   return h.replace(NOTIN_RE_JS, '<span class="mrel" style="font-family:system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif">∉</span>');
 }
 // 运行时公式统一修复入口：≠ → ∉ → ±
 function fixKatexHtml(h) {
-  return fixPmHtml(fixNotinHtml(fixNotHtml(h)));
+  return fixNotinHtml(fixNotHtml(h));
 }
 
 // Markdown + KaTeX 公式渲染（回答里的 $...$ / $$...$$ 渲染成课本级公式）
@@ -637,7 +637,7 @@ function fmtAi(s) {
     var tex = inlines[parseInt(i,10)];
     try {
       if (typeof katex !== 'undefined') {
-        return katex.renderToString(tex, { throwOnError: false, displayMode: false });
+        return fixKatexHtml(katex.renderToString(tex, { throwOnError: false, displayMode: false }));
       }
     } catch (e) {}
     return '<span class="m">' + tex + '</span>';
@@ -647,7 +647,7 @@ function fmtAi(s) {
     var tex = blocks[parseInt(i,10)];
     try {
       if (typeof katex !== 'undefined') {
-        return katex.renderToString(tex, { throwOnError: false, displayMode: true });
+        return fixKatexHtml(katex.renderToString(tex, { throwOnError: false, displayMode: true }));
       }
     } catch (e) {}
     return '<div style="text-align:center;margin:8px 0">' + tex + '</div>';

@@ -637,7 +637,7 @@ function fmtAi(s) {
     var tex = inlines[parseInt(i,10)];
     try {
       if (typeof katex !== 'undefined') {
-        return fixKatexHtml(katex.renderToString(tex, { throwOnError: false, displayMode: false }));
+        return katex.renderToString(tex, { throwOnError: false, displayMode: false });
       }
     } catch (e) {}
     return '<span class="m">' + tex + '</span>';
@@ -647,7 +647,7 @@ function fmtAi(s) {
     var tex = blocks[parseInt(i,10)];
     try {
       if (typeof katex !== 'undefined') {
-        return fixKatexHtml(katex.renderToString(tex, { throwOnError: false, displayMode: true }));
+        return katex.renderToString(tex, { throwOnError: false, displayMode: true });
       }
     } catch (e) {}
     return '<div style="text-align:center;margin:8px 0">' + tex + '</div>';

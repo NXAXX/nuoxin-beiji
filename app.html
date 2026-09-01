@@ -157,7 +157,7 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
 </head>
 <body>
 <div class="top">
-  <div class="title"><span class="menu-btn" id="menuBtn">☰</span>毛豆速记本 v2.15</div>
+  <div class="title"><span class="menu-btn" id="menuBtn">☰</span>毛豆速记本 v2.16</div>
   <div class="tabs" id="tabs"><button class="tab" data-subj="数学">数学</button><button class="tab" data-subj="物理">物理</button><button class="tab" data-subj="化学">化学</button><button class="tab" data-subj="生物">生物</button><button class="tab" data-subj="语文">语文</button><button class="tab" data-subj="英语">英语</button><button class="tab" data-subj="AI问答">AI 问答</button></div>
 </div>
 <div class="search">
@@ -610,10 +610,10 @@ function resetClearBtn() {
   btn.style.borderColor = '';
 }
 
-// 根据是否有记录显示/隐藏清空按钮
+// 清空按钮始终显示（清空后/没记录时也不隐藏，避免用户清空后找不到按钮）
 function updateClearBtn() {
   var btn = document.getElementById('clearBtn');
-  if (btn) { btn.style.display = loadQuestions().length > 0 ? '' : 'none'; }
+  if (btn) { btn.style.display = ''; }
 }
 
 // 运行时公式修复：± / ∓（正负号）在 KaTeX 数学字体下减号横杠会错位，强制系统字体
@@ -638,33 +638,37 @@ function fixKatexHtml(h) {
   return fixNotinHtml(fixNotHtml(h));
 }
 
-// Markdown + KaTeX 公式渲染（回答里的 $...$ / $$...$$ 渲染成课本级公式）
-function fmtAi(s) {
-  // 先解码 DeepSeek 可能输出的 HTML 实体（&gt;/&lt;/&amp; 等），避免二次转义成 &amp;gt;
-  var out = s
+// 解码 DeepSeek 输出里公式内部可能出现的 HTML 实体（&gt;/&lt;/&amp;），还原成真实符号供 KaTeX 渲染
+function decodeEntities(s) {
+  return s
     .replace(/&gt;/g, '>')
     .replace(/&lt;/g, '<')
     .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&nbsp;/g, ' ');
-  // 再统一转义 HTML 特殊字符，保留换行
-  out = out.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Markdown + KaTeX 公式渲染（回答里的 $...$ / $$...$$ 渲染成课本级公式）
+function fmtAi(s) {
+  var out = s;
   // 1. 代码块 ```...``` → 先占位（避免内部被其他规则干扰）
   var codeBlocks = [];
   out = out.replace(/```([\s\S]*?)```/g, function(m, c){ codeBlocks.push(c); return '\u0000C' + (codeBlocks.length-1) + '\u0000'; });
-  // 2. 独立公式 $$...$$ → 占位
-  var blocks = [];
-  out = out.replace(/\$\$([\s\S]+?)\$\$/g, function(m, c){ blocks.push(c); return '\u0000B' + (blocks.length-1) + '\u0000'; });
-  // 3. 行内公式 $...$ → 占位（后续用 KaTeX 渲染）
-  var inlines = [];
-  out = out.replace(/\$([^$\n]+?)\$/g, function(m, c){ inlines.push(c); return '\u0000I' + (inlines.length-1) + '\u0000'; });
-  // 4. 表格：连续的 |...| 行（第二行为 |---|---| 分隔行）→ 渲染成 HTML 表格
+  // 2. 表格：连续的 |...| 行 → 先占位（保证表格结构完整，不被后面的公式提取破坏）
   var tables = [];
   out = out.replace(/(?:^|\n)((?:\s*\|[^\n]*\|\s*\n){2,}\s*)/g, function(m, block){
     tables.push(block);
     return '\u0000T' + (tables.length - 1) + '\u0000';
   });
+  // 3. 独立公式 $$...$$ → 占位；公式内部的实体先解码成真实符号，让 KaTeX 能正确渲染 < >
+  var blocks = [];
+  out = out.replace(/\$\$([\s\S]+?)\$\$/g, function(m, c){ blocks.push(decodeEntities(c)); return '\u0000B' + (blocks.length-1) + '\u0000'; });
+  // 4. 行内公式 $...$ → 占位；公式内部实体同样先解码
+  var inlines = [];
+  out = out.replace(/\$([^$\n]+?)\$/g, function(m, c){ inlines.push(decodeEntities(c)); return '\u0000I' + (inlines.length-1) + '\u0000'; });
+  // 5. 正文里的 HTML 实体先解码（避免二次转义成 &amp;lt;），再统一转义为安全的 HTML
+  out = decodeEntities(out).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   // 5. 分割线 --- / *** / ___（单独一行）
   out = out.replace(/^\s*(?:---|\*\*\*|___|—)\s*$/gm, '<hr>');
   // 6. 加粗 **...**
@@ -704,6 +708,20 @@ function fmtAi(s) {
   return out;
 }
 
+// 渲染单个表格单元格：解码实体 + 渲染 $...$ 行内公式（不递归处理表格，避免无限循环）
+function renderCellInline(cell) {
+  var txt = decodeEntities(cell);
+  txt = txt.replace(/\$([^$\n]+?)\$/g, function(m, tex){
+    try {
+      if (typeof katex !== 'undefined') {
+        return fixKatexHtml(katex.renderToString(tex, { throwOnError: false, displayMode: false }));
+      }
+    } catch (e) {}
+    return '<span class="m">' + tex + '</span>';
+  });
+  return txt;
+}
+
 // 把 Markdown 表格块渲染成 HTML 表格（第二行 |---|---| 分隔行会被识别为表头分隔）
 function renderTable(block) {
   var lines = block.split('\n').map(function(l){ return l.trim(); }).filter(function(l){ return /^\|.*\|$/.test(l); });
@@ -722,7 +740,7 @@ function renderTable(block) {
   for (var r = 0; r < rows.length; r++) {
     h += '<tr>';
     for (var c = 0; c < rows[r].cells.length; c++) {
-      h += (rows[r].header ? '<th>' : '<td>') + rows[r].cells[c] + (rows[r].header ? '</th>' : '</td>');
+          h += (rows[r].header ? '<th>' : '<td>') + renderCellInline(rows[r].cells[c]) + (rows[r].header ? '</th>' : '</td>');
     }
     h += '</tr>';
   }

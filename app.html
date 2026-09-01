@@ -98,6 +98,7 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
 .qa-bar { display:flex; gap:10px; margin-top:10px; }
 .qa-bar .mic { flex:1; height:40px; border:none; border-radius:8px; background:#5ac8fa; color:#fff; font-size:15px; cursor:pointer; }
 .qa-bar .send { flex:1; height:40px; border:none; border-radius:8px; background:#1e6fff; color:#fff; font-size:15px; cursor:pointer; }
+.qa-bar .send-dad { background:#f59e0b; }
 .qa-tip { margin-top:10px; font-size:13px; color:#8a94a6; min-height:18px; }
 .qa-list { margin-top:14px; }
 .qa-item { margin-bottom:14px; }
@@ -151,13 +152,14 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
 
 <div class="content" id="content">
   <div class="inner" id="inner">
-<div class="panel" id="panel-数学"></div><div class="panel" id="panel-物理"></div><div class="panel" id="panel-化学"></div><div class="panel" id="panel-生物"></div><div class="panel" id="panel-语文"></div><div class="panel" id="panel-英语"></div><div class="panel" id="panel-AI问答"><h2>AI 问答 · 问 AI 老师</h2>
+<div class="panel" id="panel-数学"></div><div class="panel" id="panel-物理"></div><div class="panel" id="panel-化学"></div><div class="panel" id="panel-生物"></div><div class="panel" id="panel-语文"></div><div class="panel" id="panel-英语"></div><div class="panel" id="panel-AI问答"><h2>问老师 · 提意见</h2>
 <div class="qa-ask">
-  <textarea id="qaText" placeholder="把不懂的知识点写在这里…"></textarea>
+  <textarea id="qaText" placeholder="输入不懂的知识点，或对 APP 的意见建议……"></textarea>
   <div class="qa-bar">
     <button class="send" id="sendBtn">问 AI</button>
+    <button class="send send-dad" id="dadBtn">问老登</button>
   </div>
-  <div class="qa-tip" id="qaTip">💡 想用语音？点上面的输入框，用手机键盘上的 🎤 麦克风说话，文字会自动填进来。</div>
+  <div class="qa-tip" id="qaTip">💡 想语音？点输入框用键盘 🎤 说话。不懂的知识点点【问 AI】，对 APP 的需求/错误点【问老登】发给我。</div>
   <div class="qa-list" id="qaList"><div class="empty">还没有提问，把不懂的写进来问 AI 吧</div></div>
 </div></div>
   </div>
@@ -555,16 +557,31 @@ function submitQuestion() {
   renderQuestions();
   qaText.value = '';
   qaTip.textContent = '已提交，正在问 AI…';
-  // ① 同时推送到家长微信（掌握孩子问了啥）
-  sendToWechat(t, ts);
+  // ① 同时推送到家长微信（掌握孩子问了啥）——标题前缀【AI提问】
+  sendToWechat(t, ts, '【AI提问】');
   // ② 同时问 AI，答案回填
   askAi(t, list.length - 1);
+}
+
+// 问老登：孩子对 APP 的需求/错误意见建议 -> 只推家长微信（叫 prefix 区分），不问 AI
+function submitToDad() {
+  var t = qaText.value.trim();
+  if (t === '') { qaTip.textContent = '请先写想对爸爸说的话'; return; }
+  var time = new Date();
+  var ts = time.getFullYear() + '-' + pad(time.getMonth()+1) + '-' + pad(time.getDate()) + ' ' + pad(time.getHours()) + ':' + pad(time.getMinutes());
+  qaText.value = '';
+  qaTip.textContent = '正在发送给爸爸…';
+  // 标题前缀【意见建议】区分于【AI提问】
+  sendToWechat(t, ts, '【意见建议】');
 }
 function pad(n){ return n < 10 ? '0' + n : '' + n; }
 function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
 
 var sendBtn = document.getElementById('sendBtn');
 sendBtn.addEventListener('click', submitQuestion);
+
+var dadBtn = document.getElementById('dadBtn');
+if (dadBtn) { dadBtn.addEventListener('click', submitToDad); }
 
 // 接收 Java 原生推送的真实结果（微信推送）
 window.__wechatResult = function(r) {
@@ -578,10 +595,12 @@ window.__wechatResult = function(r) {
 };
 window.__wechatCb = window.__wechatResult;
 
-// Server酱推送：孩子的问题 -> 家长微信（走 beiji:// 自定义 scheme）
-function sendToWechat(text, ts) {
+// Server酱推送：孩子的问题/意见 -> 家长微信（走 beiji:// 自定义 scheme）
+// prefix 为标题前缀，用于区分【AI提问】/【意见建议】
+function sendToWechat(text, ts, prefix) {
   try {
-    var title = encodeURIComponent('【毛豆】新提问 ' + ts);
+    var p = prefix || '【毛豆】';
+    var title = encodeURIComponent(p + ' ' + ts);
     var desp = encodeURIComponent(text);
     var cb = '__wechatCb';
     var u = 'beiji://wechat?title=' + title + '&desp=' + desp + '&cb=' + cb;

@@ -581,6 +581,22 @@ function fixPmHtml(h) {
   return h.replace(/(±|∓)/g, '<span style="font-family:system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif">$1</span>');
 }
 
+// ≠ 不等于号：KaTeX 渲染成「PUA 字符 + rlap/vbox 叠加的斜杠」，华为/荣耀 WebView 斜杠错位
+// 结构：<span class="mrel"><span class="mrel"><span class="mord vbox">...rlap...PUA...fix...</span></span><span class="mrel">=</span></span>
+var NOT_RE_JS = /<span class="mrel"><span class="mrel"><span class="mord vbox">[\s\S]*?<span class="fix"><\/span>[\s\S]*?<span class="mrel">=<\/span><\/span>/g;
+function fixNotHtml(h) {
+  return h.replace(NOT_RE_JS, '<span class="mrel" style="font-family:system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif">≠</span>');
+}
+// ∉ 不属于号：KaTeX 渲染成「∈ + llap 叠加的 /」，同样错位
+var NOTIN_RE_JS = /<span class="mrel"><span class="mord"><span class="mrel">∈<\/span><\/span><span class="mord vbox">[\s\S]*?<span class="mord">\/<\/span>[\s\S]*?<span class="fix"><\/span><\/span><\/span><\/span><\/span>/g;
+function fixNotinHtml(h) {
+  return h.replace(NOTIN_RE_JS, '<span class="mrel" style="font-family:system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif">∉</span>');
+}
+// 运行时公式统一修复入口：≠ → ∉ → ±
+function fixKatexHtml(h) {
+  return fixPmHtml(fixNotinHtml(fixNotHtml(h)));
+}
+
 // Markdown + KaTeX 公式渲染（回答里的 $...$ / $$...$$ 渲染成课本级公式）
 function fmtAi(s) {
   // 只转义 HTML 特殊字符，保留换行（后续再处理换行）
@@ -621,7 +637,7 @@ function fmtAi(s) {
     var tex = inlines[parseInt(i,10)];
     try {
       if (typeof katex !== 'undefined') {
-        return fixPmHtml(katex.renderToString(tex, { throwOnError: false, displayMode: false }));
+        return fixKatexHtml(katex.renderToString(tex, { throwOnError: false, displayMode: false }));
       }
     } catch (e) {}
     return '<span class="m">' + tex + '</span>';
@@ -631,7 +647,7 @@ function fmtAi(s) {
     var tex = blocks[parseInt(i,10)];
     try {
       if (typeof katex !== 'undefined') {
-        return fixPmHtml(katex.renderToString(tex, { throwOnError: false, displayMode: true }));
+        return fixKatexHtml(katex.renderToString(tex, { throwOnError: false, displayMode: true }));
       }
     } catch (e) {}
     return '<div style="text-align:center;margin:8px 0">' + tex + '</div>';

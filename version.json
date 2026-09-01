@@ -1,1 +1,6 @@
-{"versionCode": 215, "versionName": "2.15", "apkUrl": "https://cdn.jsdelivr.net/gh/NXAXX/nuoxin-beiji@main/maodou_v2.15.apk", "note": "缓存文件名固定,清理旧版本缓存"}
+{
+  "versionCode": 216,
+  "versionName": "2.16",
+  "apkUrl": "https://cdn.jsdelivr.net/gh/NXAXX/nuoxin-beiji@main/maodou_v2.16.apk",
+  "note": "修复 AI 回答公式&大于小于号渲染、清空按钮常显"
+}

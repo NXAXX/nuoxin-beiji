@@ -157,7 +157,7 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
 </head>
 <body>
 <div class="top">
-  <div class="title"><span class="menu-btn" id="menuBtn">☰</span>毛豆速记本 v2.11</div>
+  <div class="title"><span class="menu-btn" id="menuBtn">☰</span>毛豆速记本 v2.12</div>
   <div class="tabs" id="tabs"><button class="tab" data-subj="数学">数学</button><button class="tab" data-subj="物理">物理</button><button class="tab" data-subj="化学">化学</button><button class="tab" data-subj="生物">生物</button><button class="tab" data-subj="语文">语文</button><button class="tab" data-subj="英语">英语</button><button class="tab" data-subj="AI问答">AI 问答</button></div>
 </div>
 <div class="search">
@@ -581,11 +581,33 @@ function renderQuestions() {
   updateClearBtn();
 }
 
-// 清空所有 AI 问答历史（含「问老登」意见记录）
+// 清空所有 AI 问答历史（含「问老登」意见记录）——两次点击确认（WebView 无 WebChromeClient，window.confirm 无效）
 function clearQuestions() {
-  if (!window.confirm('确定要清空所有问答记录吗？清空后不可恢复。')) return;
+  var btn = document.getElementById('clearBtn');
+  if (!btn) return;
+  // 第一次点击：变红提示「再点一次确认」，3 秒内点第二次才真正清空
+  if (btn.getAttribute('data-arm') !== '1') {
+    btn.setAttribute('data-arm', '1');
+    btn.textContent = '⚠ 再点一次确认';
+    btn.style.background = '#c0392b';
+    btn.style.color = '#fff';
+    btn.style.borderColor = '#c0392b';
+    setTimeout(function() { resetClearBtn(); }, 3000);
+    return;
+  }
+  // 第二次点击：真正清空
   try { localStorage.removeItem(QA_STORE_KEY); } catch (e) {}
+  resetClearBtn();
   renderQuestions();
+}
+function resetClearBtn() {
+  var btn = document.getElementById('clearBtn');
+  if (!btn) return;
+  btn.setAttribute('data-arm', '0');
+  btn.textContent = '🗑 清空';
+  btn.style.background = '';
+  btn.style.color = '';
+  btn.style.borderColor = '';
 }
 
 // 根据是否有记录显示/隐藏清空按钮

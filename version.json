@@ -1,6 +1,6 @@
 {
-  "versionCode": 217,
-  "versionName": "2.17",
-  "apkUrl": "https://cdn.jsdelivr.net/gh/NXAXX/nuoxin-beiji@main/maodou_v2.17.apk",
-  "note": "修复 AI 回答公式放代码块(```latex)不渲染、\\nabla 折行拆断问题"
+  "versionCode": 218,
+  "versionName": "2.18",
+  "apkUrl": "https://cdn.jsdelivr.net/gh/NXAXX/nuoxin-beiji@main/maodou_v2.18.apk",
+  "note": "修复 AI 回答多行 $...$ 公式不渲染、\\nabla 折行拆断问题"
 }

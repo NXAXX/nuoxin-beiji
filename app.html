@@ -31,6 +31,8 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
 .toc-panel.on { display:block; }
 .toc-panel .tp-head { height:44px; line-height:44px; padding:0 14px; font-size:16px; font-weight:700; color:#1e6fff; border-bottom:1px solid #eee; display:flex; align-items:center; }
 .toc-panel .tp-close { margin-left:auto; font-size:22px; color:#999; cursor:pointer; padding:0 4px; }
+.toc-panel .tp-markfilter { margin-left:auto; font-size:12px; color:#9aa3af; border:1px solid #d5dae0; border-radius:12px; padding:1px 10px; cursor:pointer; height:24px; line-height:22px; margin-right:8px; }
+.toc-panel .tp-markfilter.on { color:#f5a623; border-color:#f5a623; background:#fff2cc; font-weight:700; }
 .toc-panel .tp-body { position:absolute; top:45px; bottom:0; left:0; right:0; overflow-y:auto; padding:6px 0; -webkit-overflow-scrolling:touch; }
 .toc-panel .toc-item { display:block; padding:12px 18px; font-size:15px; color:#333; border-bottom:1px solid #f5f5f5; cursor:pointer; }
 .toc-panel .toc-item:active { background:#eef3ff; color:#1e6fff; }
@@ -167,7 +169,7 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
 </head>
 <body>
 <div class="top">
-  <div class="title"><span class="menu-btn" id="menuBtn">☰</span>毛豆速记本 v2.19</div>
+  <div class="title"><span class="menu-btn" id="menuBtn">☰</span>毛豆速记本 v2.20</div>
   <div class="tabs" id="tabs"><button class="tab" data-subj="数学">数学</button><button class="tab" data-subj="物理">物理</button><button class="tab" data-subj="化学">化学</button><button class="tab" data-subj="生物">生物</button><button class="tab" data-subj="语文">语文</button><button class="tab" data-subj="英语">英语</button><button class="tab" data-subj="AI问答">AI 问答</button></div>
 </div>
 <div class="search">
@@ -177,7 +179,7 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
 
 <!-- 全屏目录面板 -->
 <div class="toc-panel" id="tocPanel">
-  <div class="tp-head"><span id="tpTitle">目录</span><span class="tp-close" id="tpClose">✕</span></div>
+  <div class="tp-head"><span id="tpTitle">目录</span><span class="tp-markfilter" id="tpMarkFilter">只看标记</span><span class="tp-close" id="tpClose">✕</span></div>
   <div class="tp-body" id="tocBody"></div>
 </div>
 
@@ -344,6 +346,7 @@ function switchTo(name) {
 
 // ===== 标记功能（孩子标记「看不懂」的节，精确到节） =====
 var MARKS_KEY = 'beiji_marks';
+var markFilterOn = false; // 目录「只看标记」开关
 function loadMarks() {
   try { return JSON.parse(localStorage.getItem(MARKS_KEY)) || {}; }
   catch (e) { return {}; }
@@ -382,9 +385,16 @@ function applyMarks() {
       return function(e){
         var key = markKey(su, se, ji);
         var m = loadMarks();
-        if (m[key]) { delete m[key]; } else { m[key] = true; }
+        var nowMarked;
+        if (m[key]) { delete m[key]; nowMarked = false; } else { m[key] = true; nowMarked = true; }
         saveMarks(m);
         refreshMarkState(su);
+        // 推送家长微信（标记/取消都发，让家长知道孩子哪个点没搞懂）
+        if (nowMarked) {
+          var ts = new Date();
+          var tstr = ts.getFullYear() + '-' + pad(ts.getMonth()+1) + '-' + pad(ts.getDate()) + ' ' + pad(ts.getHours()) + ':' + pad(ts.getMinutes());
+          sendToWechat('【标记不懂】' + su + ' · ' + se + ' · ' + ji, tstr, '📌标记');
+        }
       };
     })(cur, secTitle, jieTitle, btn, jie);
   }
@@ -407,7 +417,8 @@ function refreshMarkState(subj) {
     if (btn) btn.textContent = marked ? '📌 已标记' : '📌 标记';
   }
   // 同步刷新目录里的标记
-  refreshTocMarks(subj);
+  if (markFilterOn) rebuildToc();
+  else refreshTocMarks(subj);
 }
 // 刷新目录树里节名的 📌 标记（若有目录面板已构建）
 function refreshTocMarks(subj) {
@@ -442,22 +453,29 @@ function rebuildToc() {
     var jies = secs[i].querySelectorAll('.jie');
     if (jies.length > 0) {
       // 章 → 节 折叠树
-      html += '<div class="toc-ch" data-sec="' + i + '" data-toggle="1"><span class="arrow">▶</span>' + t + '</div>';
       var jieHtml = '';
+      var jieMarkedCount = 0;
       for (var j=0;j<jies.length;j++) {
         var jt = jies[j].getAttribute('data-t') || ('节 ' + (j+1));
-        jieHtml += '<div class="toc-jie" data-sec="' + i + '" data-jie="' + j + '">' + jt + '</div>';
+        var jieSecTitle = t;
+        var jieMarked = isMarked(cur, jieSecTitle, jt);
+        if (jieMarked) jieMarkedCount++;
+        if (markFilterOn && !jieMarked) continue; // 只看标记：跳过未标记的节
+        jieHtml += '<div class="toc-jie' + (jieMarked ? ' marked' : '') + '" data-sec="' + i + '" data-jie="' + j + '">' + jt + '</div>';
       }
-      html += '<div class="toc-jie-wrap" style="display:none">' + jieHtml + '</div>';
+      // 只看标记且本章无标记节：整章隐藏
+      if (markFilterOn && jieMarkedCount === 0) continue;
+      html += '<div class="toc-ch" data-sec="' + i + '" data-toggle="1"><span class="arrow">▶</span>' + t + '</div>';
+      html += '<div class="toc-jie-wrap"' + (markFilterOn ? '' : ' style="display:none"') + '>' + jieHtml + '</div>';
     } else {
       // 无节：直接是章
       html += '<div class="toc-item" data-sec="' + i + '">' + t + '</div>';
     }
   }
+  if (markFilterOn && html === '') { html = '<div class="empty-mark">本学科还没有标记的节</div>'; }
   tocBody.innerHTML = html;
   tpTitle.textContent = cur + ' · 目录（' + secs.length + ' 章）';
-  // 重建后同步各节的 📌 标记
-  refreshTocMarks(cur);
+  // 重建后同步各节的 📌 标记（全量状态已在上面直接写入 class，这里无需再刷）
 }
 
 // 打开/关闭目录面板
@@ -465,6 +483,16 @@ function openToc() { rebuildToc(); tocPanel.classList.add('on'); }
 function closeToc() { tocPanel.classList.remove('on'); }
 document.getElementById('menuBtn').addEventListener('click', openToc);
 document.getElementById('tpClose').addEventListener('click', closeToc);
+// 「只看标记」开关：切换后重建目录（只显示带标记的节）
+var tpMarkFilter = document.getElementById('tpMarkFilter');
+if (tpMarkFilter) {
+  tpMarkFilter.addEventListener('click', function() {
+    markFilterOn = !markFilterOn;
+    if (markFilterOn) tpMarkFilter.classList.add('on');
+    else tpMarkFilter.classList.remove('on');
+    rebuildToc();
+  });
+}
 
 // 目录点击：带 data-toggle 的章→折叠/展开节；data-jie 的节→跳转；普通章→跳转
 tocBody.addEventListener('click', function(e) {

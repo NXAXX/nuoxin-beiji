@@ -1,6 +1,6 @@
 {
-  "versionCode": 219,
-  "versionName": "2.19",
-  "apkUrl": "https://cdn.jsdelivr.net/gh/NXAXX/nuoxin-beiji@main/maodou_v2.19.apk",
-  "note": "新增「标记不懂」功能：可在任意一科的某一节标记，跨科目汇总回看"
+  "versionCode": 220,
+  "versionName": "2.20",
+  "apkUrl": "https://cdn.jsdelivr.net/gh/NXAXX/nuoxin-beiji@main/maodou_v2.20.apk",
+  "note": "标记功能增强：目录「只看标记」开关 + 标记后推送家长微信"
 }

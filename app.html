@@ -157,7 +157,7 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
 </head>
 <body>
 <div class="top">
-  <div class="title"><span class="menu-btn" id="menuBtn">☰</span>毛豆速记本 v2.17</div>
+  <div class="title"><span class="menu-btn" id="menuBtn">☰</span>毛豆速记本 v2.18</div>
   <div class="tabs" id="tabs"><button class="tab" data-subj="数学">数学</button><button class="tab" data-subj="物理">物理</button><button class="tab" data-subj="化学">化学</button><button class="tab" data-subj="生物">生物</button><button class="tab" data-subj="语文">语文</button><button class="tab" data-subj="英语">英语</button><button class="tab" data-subj="AI问答">AI 问答</button></div>
 </div>
 <div class="search">
@@ -676,9 +676,17 @@ function fmtAi(s) {
   // 3. 独立公式 $$...$$ → 占位；公式内部的实体先解码成真实符号，让 KaTeX 能正确渲染 < >
   var blocks = [];
   out = out.replace(/\$\$([\s\S]+?)\$\$/g, function(m, c){ blocks.push(decodeEntities(c)); return '\u0000B' + (blocks.length-1) + '\u0000'; });
-  // 4. 行内公式 $...$ → 占位；公式内部实体同样先解码
+  // 4. 行内公式 $...$ → 占位；公式内部实体同样先解码。
+  //    关键：DeepSeek 常把「本应是独立/长公式」的式子用单个 $ 包裹并写成多行（内部含换行），
+  //    若用 [^$\n] 会匹配失败导致裸显。这里改为 [\s\S] 支持跨行，并记录是否含换行，
+  //    含换行的按块级公式渲染，单行的按行内公式渲染。
   var inlines = [];
-  out = out.replace(/\$([^$\n]+?)\$/g, function(m, c){ inlines.push(decodeEntities(c)); return '\u0000I' + (inlines.length-1) + '\u0000'; });
+  var inlineIsBlock = [];
+  out = out.replace(/\$([\s\S]+?)\$/g, function(m, c){
+    inlines.push(decodeEntities(c));
+    inlineIsBlock.push(/\n/.test(c));
+    return '\u0000I' + (inlines.length-1) + '\u0000';
+  });
   // 5. 正文里的 HTML 实体先解码（避免二次转义成 &amp;lt;），再统一转义为安全的 HTML
   out = decodeEntities(out).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   // 5. 分割线 --- / *** / ___（单独一行）
@@ -707,9 +715,12 @@ function fmtAi(s) {
   // 9. 行内公式占位换回 KaTeX HTML（有离线 KaTeX 才渲染，否则退化为原样文本）
   out = out.replace(/\u0000I(\d+)\u0000/g, function(m, i){
     var tex = inlines[parseInt(i,10)];
+    // 含换行的「单 $ 包裹公式」实为块级公式：先修复 \nabla 折行拆断，再按块级渲染
+    var blockMode = inlineIsBlock[parseInt(i,10)];
+    if (blockMode) tex = tex.replace(/\\\s*\n\s*/g, '\\');
     try {
       if (typeof katex !== 'undefined') {
-        return fixKatexHtml(katex.renderToString(tex, { throwOnError: false, displayMode: false }));
+        return fixKatexHtml(katex.renderToString(tex, { throwOnError: false, displayMode: blockMode }));
       }
     } catch (e) {}
     return '<span class="m">' + tex + '</span>';

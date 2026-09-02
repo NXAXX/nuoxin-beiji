@@ -1,6 +1,6 @@
 {
-  "versionCode": 218,
-  "versionName": "2.18",
-  "apkUrl": "https://cdn.jsdelivr.net/gh/NXAXX/nuoxin-beiji@main/maodou_v2.18.apk",
-  "note": "修复 AI 回答多行 $...$ 公式不渲染、\\nabla 折行拆断问题"
+  "versionCode": 219,
+  "versionName": "2.19",
+  "apkUrl": "https://cdn.jsdelivr.net/gh/NXAXX/nuoxin-beiji@main/maodou_v2.19.apk",
+  "note": "新增「标记不懂」功能：可在任意一科的某一节标记，跨科目汇总回看"
 }

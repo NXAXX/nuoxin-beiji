@@ -157,7 +157,7 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
 </head>
 <body>
 <div class="top">
-  <div class="title"><span class="menu-btn" id="menuBtn">☰</span>毛豆速记本 v2.16</div>
+  <div class="title"><span class="menu-btn" id="menuBtn">☰</span>毛豆速记本 v2.17</div>
   <div class="tabs" id="tabs"><button class="tab" data-subj="数学">数学</button><button class="tab" data-subj="物理">物理</button><button class="tab" data-subj="化学">化学</button><button class="tab" data-subj="生物">生物</button><button class="tab" data-subj="语文">语文</button><button class="tab" data-subj="英语">英语</button><button class="tab" data-subj="AI问答">AI 问答</button></div>
 </div>
 <div class="search">
@@ -652,15 +652,27 @@ function decodeEntities(s) {
 // Markdown + KaTeX 公式渲染（回答里的 $...$ / $$...$$ 渲染成课本级公式）
 function fmtAi(s) {
   var out = s;
-  // 1. 代码块 ```...``` → 先占位（避免内部被其他规则干扰）
+  // 1. 代码块 ```lang ...``` → 先占位（避免内部被其他规则干扰）；
+  //    DeepSeek 常把数学公式包进 ```latex / ```math / ```tex 代码块，
+  //    这类「公式代码块」不能当普通代码原样输出，要标记出来，还原时走 KaTeX 渲染。
   var codeBlocks = [];
-  out = out.replace(/```([\s\S]*?)```/g, function(m, c){ codeBlocks.push(c); return '\u0000C' + (codeBlocks.length-1) + '\u0000'; });
+  var codeIsMath = [];
+  out = out.replace(/```([a-zA-Z]*)[\s\S]*?```/g, function(m, lang){
+    // 提取代码块体（去掉首行语言标记 + 首尾 ```）
+    var body = m.replace(/^```[a-zA-Z]*\s*/, '').replace(/```\s*$/, '');
+    codeBlocks.push(body);
+    codeIsMath.push(/^(latex|math|tex|katex)$/i.test(lang));
+    return '\u0000C' + (codeBlocks.length-1) + '\u0000';
+  });
   // 2. 表格：连续的 |...| 行 → 先占位（保证表格结构完整，不被后面的公式提取破坏）
   var tables = [];
   out = out.replace(/(?:^|\n)((?:\s*\|[^\n]*\|\s*\n){2,}\s*)/g, function(m, block){
     tables.push(block);
     return '\u0000T' + (tables.length - 1) + '\u0000';
   });
+  // 2.5 归一化 LaTeX 定界符：\[ \] → $$ $$，\( \) → $ $（DeepSeek 常输出这两种，前端要兼容）
+  out = out.replace(/\\\[\s*/g, '$$').replace(/\s*\\\]/g, '$$');
+  out = out.replace(/\\\(/g, '$').replace(/\\\)/g, '$');
   // 3. 独立公式 $$...$$ → 占位；公式内部的实体先解码成真实符号，让 KaTeX 能正确渲染 < >
   var blocks = [];
   out = out.replace(/\$\$([\s\S]+?)\$\$/g, function(m, c){ blocks.push(decodeEntities(c)); return '\u0000B' + (blocks.length-1) + '\u0000'; });
@@ -683,8 +695,15 @@ function fmtAi(s) {
   out = out.replace(/\u0000T(\d+)\u0000/g, function(m, i){
     return renderTable(tables[parseInt(i, 10)]);
   });
-  // 8. 代码块占位换回
-  out = out.replace(/\u0000C(\d+)\u0000/g, function(m, i){ return '<pre><code>' + codeBlocks[parseInt(i,10)] + '</code></pre>'; });
+  // 8. 代码块占位换回：公式代码块（latex/math/tex）走 KaTeX 渲染，普通代码块用 <pre><code> 原样
+  out = out.replace(/\u0000C(\d+)\u0000/g, function(m, i){
+    var idx = parseInt(i, 10);
+    var body = codeBlocks[idx];
+    if (codeIsMath[idx]) {
+      return renderMathBlock(body);
+    }
+    return '<pre><code>' + body + '</code></pre>';
+  });
   // 9. 行内公式占位换回 KaTeX HTML（有离线 KaTeX 才渲染，否则退化为原样文本）
   out = out.replace(/\u0000I(\d+)\u0000/g, function(m, i){
     var tex = inlines[parseInt(i,10)];
@@ -706,6 +725,53 @@ function fmtAi(s) {
     return '<div style="text-align:center;margin:8px 0">' + tex + '</div>';
   });
   return out;
+}
+
+// 渲染「公式代码块」（```latex ``` 等）内容为块级 KaTeX 公式。
+// 处理：① 归一化 \[ \] / \( \) / $$ $$ 定界符 ② 修复 DeepSeek 折行把 \nabla 等命令在 \n 处拆断的问题
+//     ③ 把多行公式按行各渲染成一个独立块级公式。
+function renderMathBlock(body) {
+  // 实体解码
+  var txt = decodeEntities(body);
+  // 修复折行拆断：DeepSeek 在长公式里可能会把 \frac \nabla 等命令拆成「\ 在行尾、命令名在下一行首」，
+  // 例如 "\newline" 被写成 "\\\nnabla"（\ 后接换行再接 nabla）。这里把「行尾的 \ + 换行 + 空白」拼回成命令。
+  txt = txt.replace(/\\\s*\n\s*/g, '\\');
+  // 归一化定界符
+  txt = txt.replace(/\\\[\s*/g, '$$').replace(/\s*\\\]/g, '$$');
+  txt = txt.replace(/\\\(/g, '$').replace(/\\\)/g, '$');
+  // 切分：优先按 $$...$$ 块级公式切，否则按行切，每段独立渲染
+  var html = '';
+  var segs = txt.split(/\$\$/);
+  for (var k = 0; k < segs.length; k++) {
+    var seg = segs[k].trim();
+    if (seg === '') continue;
+    if (k % 2 === 1) {
+      // $$...$$ 之间是块级公式
+      html += renderOneMath(seg, true);
+    } else {
+      // 普通文本/多行，逐行处理，去掉 $ 包裹的行内公式符号后整体渲染也行；这里逐行
+      var lines = seg.split('\n');
+      for (var li = 0; li < lines.length; li++) {
+        var line = lines[li].trim();
+        if (line === '') continue;
+        html += renderOneMath(line, true);
+      }
+    }
+  }
+  if (html === '') { html = '<pre><code>' + txt + '</code></pre>'; }
+  return html;
+}
+
+// 渲染单个公式（去掉可能残留的 $ 符号），displayMode 决定块级还是行内
+function renderOneMath(txt, block) {
+  var tex = txt.replace(/^\$+/, '').replace(/\$+$/, '').trim();
+  if (tex === '') return '';
+  try {
+    if (typeof katex !== 'undefined') {
+      return fixKatexHtml(katex.renderToString(tex, { throwOnError: false, displayMode: !!block }));
+    }
+  } catch (e) {}
+  return '<div style="text-align:center;margin:8px 0" class="m">' + tex + '</div>';
 }
 
 // 渲染单个表格单元格：解码实体 + 渲染 $...$ 行内公式（不递归处理表格，避免无限循环）

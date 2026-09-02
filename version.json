@@ -1,6 +1,6 @@
 {
-  "versionCode": 216,
-  "versionName": "2.16",
-  "apkUrl": "https://cdn.jsdelivr.net/gh/NXAXX/nuoxin-beiji@main/maodou_v2.16.apk",
-  "note": "修复 AI 回答公式&大于小于号渲染、清空按钮常显"
+  "versionCode": 217,
+  "versionName": "2.17",
+  "apkUrl": "https://cdn.jsdelivr.net/gh/NXAXX/nuoxin-beiji@main/maodou_v2.17.apk",
+  "note": "修复 AI 回答公式放代码块(```latex)不渲染、\\nabla 折行拆断问题"
 }

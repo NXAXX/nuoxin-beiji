@@ -56,6 +56,16 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
 .panel section h3 { margin:0 0 10px; font-size:16px; color:#1f2329; }
 .jie { margin-bottom:10px; }
 .jie-t { font-weight:700; font-size:14px; color:#1e6fff; background:#f0f5ff; border-radius:6px; padding:6px 10px; margin-bottom:6px; }
+/* 标记功能：节标题右侧的标记按钮 + 标记高亮 */
+.jie-t { position:relative; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.jie-t .jie-title { flex:1; }
+.jie-t .mark-btn { flex:none; font-size:12px; color:#9aa3af; background:transparent; border:1px solid #d5dae0; border-radius:12px; padding:1px 8px; cursor:pointer; line-height:1.4; }
+.jie-t .mark-btn:active { background:#f0f0f0; }
+.jie.marked > .jie-t { background:#fff7e0; border-left:3px solid #f5a623; color:#8a6d1a; }
+.jie.marked > .jie-t .mark-btn { color:#f5a623; border-color:#f5a623; background:#fff2cc; font-weight:700; }
+.jie.marked { background:#fffbf0; border-radius:6px; }
+.toc-jie.marked::before { content:'📌 '; }
+.toc-jie.marked { color:#f5a623; font-weight:700; }
 .panel section.hit { border:2px solid #ff9500; }
 .kp { padding:8px 0; border-bottom:1px dashed #eee; }
 .kp:last-child { border-bottom:none; }
@@ -157,7 +167,7 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
 </head>
 <body>
 <div class="top">
-  <div class="title"><span class="menu-btn" id="menuBtn">☰</span>毛豆速记本 v2.18</div>
+  <div class="title"><span class="menu-btn" id="menuBtn">☰</span>毛豆速记本 v2.19</div>
   <div class="tabs" id="tabs"><button class="tab" data-subj="数学">数学</button><button class="tab" data-subj="物理">物理</button><button class="tab" data-subj="化学">化学</button><button class="tab" data-subj="生物">生物</button><button class="tab" data-subj="语文">语文</button><button class="tab" data-subj="英语">英语</button><button class="tab" data-subj="AI问答">AI 问答</button></div>
 </div>
 <div class="search">
@@ -328,6 +338,95 @@ function switchTo(name) {
   content.scrollTop = scrollPos[name] || 0;
   // 确保切接头触后滚动位置正确（避免长内容时停在底部/中间）
   setTimeout(function(){ content.scrollTop = scrollPos[name] || 0; }, 0);
+  // 挂载/恢复各节的「📌 标记」按钮与高亮（内容可能刚注入）
+  applyMarks();
+}
+
+// ===== 标记功能（孩子标记「看不懂」的节，精确到节） =====
+var MARKS_KEY = 'beiji_marks';
+function loadMarks() {
+  try { return JSON.parse(localStorage.getItem(MARKS_KEY)) || {}; }
+  catch (e) { return {}; }
+}
+function saveMarks(m) {
+  try { localStorage.setItem(MARKS_KEY, JSON.stringify(m)); } catch (e) {}
+}
+function markKey(subj, secTitle, jieTitle) {
+  return subj + '||' + secTitle + '||' + jieTitle;
+}
+function isMarked(subj, secTitle, jieTitle) {
+  return loadMarks()[markKey(subj, secTitle, jieTitle)] === true;
+}
+// 给当前科每个节标题加标记按钮，并恢复已标记状态
+function applyMarks() {
+  var panel = document.getElementById('panel-' + cur);
+  if (!panel) return;
+  var jies = panel.querySelectorAll('.jie-t');
+  for (var i=0;i<jies.length;i++) {
+    var jt = jies[i];
+    if (jt.getAttribute('data-mark-bound') === '1') continue; // 已绑定过
+    jt.setAttribute('data-mark-bound', '1');
+    var jie = jt.closest('.jie');
+    var sec = jie ? jie.closest('section.sec') : null;
+    var secTitle = sec ? sec.getAttribute('data-t') : '';
+    var jieTitle = jie ? jie.getAttribute('data-t') : (jt.textContent || '');
+    // 把原标题包进 .jie-title（保留内部 HTML），再附加标记按钮
+    var inner = jt.innerHTML;
+    jt.innerHTML = '<span class="jie-title">' + inner + '</span>';
+    var btn = document.createElement('span');
+    btn.className = 'mark-btn';
+    btn.setAttribute('data-role', 'mark');
+    btn.textContent = isMarked(cur, secTitle, jieTitle) ? '📌 已标记' : '📌 标记';
+    jt.appendChild(btn);
+    jt.onclick = (function(su, se, ji, b, jieEl){
+      return function(e){
+        var key = markKey(su, se, ji);
+        var m = loadMarks();
+        if (m[key]) { delete m[key]; } else { m[key] = true; }
+        saveMarks(m);
+        refreshMarkState(su);
+      };
+    })(cur, secTitle, jieTitle, btn, jie);
+  }
+  refreshMarkState(cur);
+}
+// 刷新当前科的标记高亮与目录（不重新绑定按钮）
+function refreshMarkState(subj) {
+  var panel = document.getElementById('panel-' + subj);
+  if (!panel) return;
+  var jies = panel.querySelectorAll('.jie');
+  for (var i=0;i<jies.length;i++) {
+    var jie = jies[i];
+    var sec = jie.closest('section.sec');
+    var secTitle = sec ? sec.getAttribute('data-t') : '';
+    var jieTitle = jie.getAttribute('data-t') || '';
+    var marked = isMarked(subj, secTitle, jieTitle);
+    if (marked) jie.classList.add('marked');
+    else jie.classList.remove('marked');
+    var btn = jie.querySelector('.mark-btn');
+    if (btn) btn.textContent = marked ? '📌 已标记' : '📌 标记';
+  }
+  // 同步刷新目录里的标记
+  refreshTocMarks(subj);
+}
+// 刷新目录树里节名的 📌 标记（若有目录面板已构建）
+function refreshTocMarks(subj) {
+  if (cur !== subj) return;
+  var items = tocBody.querySelectorAll('.toc-jie');
+  for (var i=0;i<items.length;i++) {
+    var el = items[i];
+    var secIdx = el.getAttribute('data-sec');
+    var jieIdx = el.getAttribute('data-jie');
+    var secs = getSecs();
+    var sec = secs[parseInt(secIdx,10)];
+    var jie = sec ? sec.querySelectorAll('.jie')[parseInt(jieIdx,10)] : null;
+    if (sec && jie) {
+      var secTitle = sec.getAttribute('data-t') || '';
+      var jieTitle = jie.getAttribute('data-t') || '';
+      if (isMarked(subj, secTitle, jieTitle)) el.classList.add('marked');
+      else el.classList.remove('marked');
+    }
+  }
 }
 
 function getSecs() {
@@ -357,6 +456,8 @@ function rebuildToc() {
   }
   tocBody.innerHTML = html;
   tpTitle.textContent = cur + ' · 目录（' + secs.length + ' 章）';
+  // 重建后同步各节的 📌 标记
+  refreshTocMarks(cur);
 }
 
 // 打开/关闭目录面板

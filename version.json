@@ -1,6 +1,6 @@
 {
-  "versionCode": 222,
-  "versionName": "2.22",
-  "apkUrl": "https://cdn.jsdelivr.net/gh/NXAXX/nuoxin-beiji@main/maodou_v2.22.apk",
-  "note": "AI问答回答区字体调大：正文14→16px，公式放大到1.25em，表格13→15px"
+  "versionCode": 223,
+  "versionName": "2.23",
+  "apkUrl": "https://cdn.jsdelivr.net/gh/NXAXX/nuoxin-beiji@main/maodou_v2.23.apk",
+  "note": "AI回答字号加大 + UPDATE_URL 改版本化 sha 绕过CDN顽固缓存"
 }

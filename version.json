@@ -1,6 +1,6 @@
 {
-  "versionCode": 220,
-  "versionName": "2.20",
-  "apkUrl": "https://cdn.jsdelivr.net/gh/NXAXX/nuoxin-beiji@main/maodou_v2.20.apk",
-  "note": "标记功能增强：目录「只看标记」开关 + 标记后推送家长微信"
+  "versionCode": 221,
+  "versionName": "2.21",
+  "apkUrl": "https://cdn.jsdelivr.net/gh/NXAXX/nuoxin-beiji@main/maodou_v2.21.apk",
+  "note": "取消标记功能，新增左右滑动切换栏目"
 }

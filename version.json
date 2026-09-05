@@ -1,6 +1,6 @@
 {
   "versionCode": 225,
   "versionName": "2.25",
-  "apkUrl": "https://cdn.jsdelivr.net/gh/NXAXX/nuoxin-beiji@main/maodou_v2.25.apk",
-  "note": "数理化生四科按人教版分册深度重写；浏览追踪（每晚23:55汇总推家长微信）；默认判为诺欣，家长按语文→英语→数学顺序点击可认领为老登（仅老登机不统计）"
+  "apkUrl": "https://cdn.jsdelivr.net/gh/NXAXX/nuoxin-beiji@1cea6741db01089ee3ef2c6b30b70e5362afa649/maodou_v2.25.apk",
+  "note": "数理化生四科按人教版分册深度重写；浏览追踪（每晚23:55汇总推家长微信）；默认诺欣，家长按语文→英语→数学顺序认领老登"
 }

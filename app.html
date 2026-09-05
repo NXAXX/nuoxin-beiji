@@ -304,6 +304,8 @@ function switchTo(name) {
   cur = name;
   _inited = true;
   q.value = '';
+  // 父辈暗号识访：监听栏目点击序列（按需连续点 语文→英语→数学 认领为「老登」）
+  listenClaimSeq(name);
   // 先注入目标科内容（异步、可缓存），再清空其他科（单科渲染，避免 DOM 累积）
   ensurePanel(name);
   clearOtherPanels(name);
@@ -516,6 +518,37 @@ function trackByText(secName, jieName) {
     var ifr = document.createElement('iframe');
     ifr.style.display = 'none';
     ifr.src = url;
+    document.body.appendChild(ifr);
+    setTimeout(function(){ if (ifr.parentNode) ifr.parentNode.removeChild(ifr); }, 1000);
+  } catch (e) {}
+}
+
+// ===== 父辈暗号识访：连续点击「语文→英语→数学」认领为老登（老人） =====
+var claimSeq = [];           // 最近点击的栏目序列（只保留最近 3 个）
+var claimWindows = ['语文', '英语', '数学'];  // 暗号顺序
+var claimSent = false;       // 本轮是否已上报（避免重复弹框）
+
+function listenClaimSeq(name) {
+  try {
+    if (claimSent) return;   // 已上报过，不再判断
+    claimSeq.push(name);
+    if (claimSeq.length > 3) claimSeq.shift();
+    if (claimSeq.length === 3 &&
+        claimSeq[0] === claimWindows[0] &&
+        claimSeq[1] === claimWindows[1] &&
+        claimSeq[2] === claimWindows[2]) {
+      claimSent = true;
+      claimSeq = [];
+      claimLaodeng();
+    }
+  } catch (e) {}
+}
+
+function claimLaodeng() {
+  try {
+    var ifr = document.createElement('iframe');
+    ifr.style.display = 'none';
+    ifr.src = 'beiji://claim';
     document.body.appendChild(ifr);
     setTimeout(function(){ if (ifr.parentNode) ifr.parentNode.removeChild(ifr); }, 1000);
   } catch (e) {}

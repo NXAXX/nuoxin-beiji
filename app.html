@@ -396,6 +396,10 @@ tocBody.addEventListener('click', function(e) {
       if (jies[jidx]) {
         closeToc();
         setTimeout(function(){ jies[jidx].scrollIntoView(); }, 30);
+        // 浏览追踪：目录点击跳转到节
+        var _jt = jies[jidx].getAttribute('data-t') || '';
+        var _st = secs[sidx].getAttribute('data-t') || '';
+        trackByText(_st, _jt);
       }
     }
     return;
@@ -474,7 +478,47 @@ function tapEnt(el) {
     ent.classList.remove('open','cond','warn','deriv');
   } else {
     ent.classList.add('open','cond','warn','deriv');
+    // 浏览追踪：上报当前科目/章/节/知识点（发给 Java 存起来，每日 23:55 汇总推家长）
+    trackView(el);
   }
+}
+
+// 浏览追踪：找到当前卡片的所在节/章/科目，通过 beiji://track 上报（不阻塞交互）
+function trackView(el) {
+  try {
+    var jieEl = el;
+    while (jieEl && jieEl !== document && !(jieEl.classList && jieEl.classList.contains('jie'))) jieEl = jieEl.parentNode;
+    var secEl = el;
+    while (secEl && secEl !== document && !(secEl.classList && secEl.classList.contains('sec'))) secEl = secEl.parentNode;
+    var jieName = jieEl && jieEl.getAttribute ? (jieEl.getAttribute('data-t') || '') : '';
+    var secName = secEl && secEl.getAttribute ? (secEl.getAttribute('data-t') || '') : '';
+    var itemName = el.textContent ? (el.textContent.replace(/▾/g,'').trim()) : '';
+    var parts = [];
+    if (cur) parts.push(encodeURIComponent(cur));
+    else parts.push('');
+    parts.push(encodeURIComponent(secName));
+    parts.push(encodeURIComponent(jieName));
+    parts.push(encodeURIComponent(itemName));
+    // 生成一个隐藏 iframe 触发 beiji:// scheme（不干扰主页面）
+    var url = 'beiji://track?subj=' + encodeURIComponent(cur||'') + '&sec=' + encodeURIComponent(secName) + '&jie=' + encodeURIComponent(jieName) + '&item=' + encodeURIComponent(itemName);
+    var ifr = document.createElement('iframe');
+    ifr.style.display = 'none';
+    ifr.src = url;
+    document.body.appendChild(ifr);
+    setTimeout(function(){ if (ifr.parentNode) ifr.parentNode.removeChild(ifr); }, 1000);
+  } catch (e) {}
+}
+
+// 简化版追踪：已知章名/节名，直接上报（用于目录跳转）
+function trackByText(secName, jieName) {
+  try {
+    var url = 'beiji://track?subj=' + encodeURIComponent(cur||'') + '&sec=' + encodeURIComponent(secName||'') + '&jie=' + encodeURIComponent(jieName||'') + '&item=';
+    var ifr = document.createElement('iframe');
+    ifr.style.display = 'none';
+    ifr.src = url;
+    document.body.appendChild(ifr);
+    setTimeout(function(){ if (ifr.parentNode) ifr.parentNode.removeChild(ifr); }, 1000);
+  } catch (e) {}
 }
 document.getElementById('inner').addEventListener('click', function(e) {
   var w = e.target;

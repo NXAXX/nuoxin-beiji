@@ -1,6 +1,6 @@
 {
-  "versionCode": 227,
-  "versionName": "2.26",
-  "apkUrl": "https://cdn.jsdelivr.net/gh/NXAXX/nuoxin-beiji@27e41a88e401eeaa2869880239b9bce16e43fa25/maodou_v2.26b.apk",
-  "note": "数理化生四科深度重写；浏览追踪（23:55推家长）；暗号识访（语英数认领老登）"
+  "versionCode": 228,
+  "versionName": "2.28",
+  "apkUrl": "https://cdn.jsdelivr.net/gh/NXAXX/nuoxin-beiji@447dacbc747e1b570d9c59c3d43055422ba18e2c/maodou_v2.28.apk",
+  "note": "精简版：仅语文/英语/数理化生教材/AI问答；教材栏目搜索修复；删早安弹窗；隐藏已同步提示"
 }

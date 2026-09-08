@@ -524,6 +524,8 @@ tabs.addEventListener('click', function(e) {
     if (Math.abs(dx) < 60) return;
     if (Math.abs(dx) < Math.abs(dy) * 1.2) return;
     if (dt > 500) return; // 500ms 内才算滑动
+    // 草稿本等特殊面板不支持左右滑动切栏目（手势留给画板缩放/书写）
+    if (cur === '草稿本') { sx = 0; sy = 0; return; }
     var arr = allTabs();
     var idx = arr.indexOf(cur);
     if (idx < 0) return;

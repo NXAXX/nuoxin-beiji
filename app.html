@@ -212,6 +212,10 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
     <button class="sk-btn" id="skEraser" title="橡皮">🧽</button>
     <button class="sk-btn" id="skUndo" title="撤销">↶</button>
     <button class="sk-btn" id="skClear" title="清空当前页">🗑</button>
+    <span class="sk-split"></span>
+    <button class="sk-btn" id="skPrevPage" title="上一页">◀</button>
+    <button class="sk-btn sk-pageinfo" id="skPageInfo">1/1</button>
+    <button class="sk-btn" id="skNextPage" title="下一页">▶</button>
     <button class="sk-btn" id="skAddPage" title="新增空白页">＋页</button>
     <button class="sk-btn" id="skDelPage" title="删除当前页">－页</button>
   </div>
@@ -227,13 +231,16 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
     <input type="range" id="skSize" min="1" max="24" value="4" class="sk-range">
     <span class="sk-lbl">压感</span>
     <label class="sk-sw"><input type="checkbox" id="skPressure" checked><span class="sk-sw-slider"></span></label>
+    <span class="sk-split"></span>
+    <span class="sk-lbl">仅笔写</span>
+    <label class="sk-sw" title="开启后只有手写笔能画，手指只用于缩放/翻页"><input type="checkbox" id="skPenOnly" checked><span class="sk-sw-slider"></span></label>
   </div>
   <div class="sk-view" id="skView">
     <div class="sk-stage" id="skStage">
       <canvas id="skCanvas"></canvas>
     </div>
   </div>
-  <div class="sk-footer" id="skFooter">第 1 / 1 页 · 两指缩放 · 单指书写</div>
+  <div class="sk-footer" id="skFooter">第 1 / 1 页 · 笔书写 · 两指缩放</div>
 </div></div><div class="panel" id="panel-AI问答"><h2>问老师 · 提意见</h2>
 <div class="qa-ask">
   <textarea id="qaText" placeholder="输入不懂的知识点，点【问 AI】询问就可以"></textarea>
@@ -1214,6 +1221,7 @@ renderQuestions();
   var color = '#1f2329';
   var sizeBase = 4;
   var pressureOn = true;
+  var penOnly = true;   // 仅手写笔可作画；手指只用于缩放/平移（关掉后手指也能画）
 
   // 缩放/平移（stage 的 transform）
   var scale = 1, tx = 0, ty = 0;
@@ -1357,6 +1365,8 @@ renderQuestions();
 
   function renderFooter() {
     if (footer) footer.textContent = '第 ' + (curPage+1) + ' / ' + pages.length + ' 页 · 两指缩放 · 单指书写';
+    var pi = document.getElementById('skPageInfo');
+    if (pi) pi.textContent = (curPage+1) + '/' + pages.length;
   }
 
   // 当前正在书写的 stroke
@@ -1370,10 +1380,36 @@ renderQuestions();
   }
 
   var drawing = false;
+  var activePointers = 0;   // 当前按下的指针数（>1 = 双指缩放，禁用画笔）
+  var pinching = false;     // 双指缩放/平移中
+
+  // 取消当前正在画的 stroke（丢弃，不保存）
+  function cancelDrawing() {
+    if (drawing) {
+      // 画笔/橡皮 stroke 已 push 进数组或修改了 strokes，双指时撤回到 push 前的状态
+      var st = undoStacks[curPage];
+      if (st && st.length) { pages[curPage].strokes = JSON.parse(st.pop()); }
+    }
+    drawing = false;
+    curStroke = null;
+    erlPts = null;
+    renderPage();
+  }
 
   canvas.addEventListener('pointerdown', function(e) {
     e.preventDefault();
     if (e.pointerType === 'mouse' && e.buttons !== 1) return;
+    activePointers++;
+    if (activePointers > 1 || pinching) {
+      // 第二根手指落下 → 开始缩放，禁止画笔
+      pinching = true;
+      cancelDrawing();
+      return;
+    }
+    // 仅笔模式：手指(touch)落下时不作画，留给缩放/平移；笔(pen)才作画
+    if (penOnly && e.pointerType === 'touch') {
+      return;
+    }
     drawing = true;
     canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId);
     var pos = pointerPos(e);
@@ -1394,7 +1430,7 @@ renderQuestions();
   });
 
   canvas.addEventListener('pointermove', function(e) {
-    if (!drawing) return;
+    if (!drawing || pinching) return;
     e.preventDefault();
     var pos = pointerPos(e);
     if (tool === 'eraser-line') {
@@ -1412,6 +1448,7 @@ renderQuestions();
   });
 
   function endStroke(e) {
+    if (pinching) { activePointers = Math.max(0, activePointers - 1); return; }
     if (!drawing) return;
     drawing = false;
     if (tool === 'eraser-line') {
@@ -1420,17 +1457,21 @@ renderQuestions();
       // pen/eraser-dot 结束，保存
     }
     curStroke = null;
+    activePointers = Math.max(0, activePointers - 1);
     renderPage();
     save();
   }
   canvas.addEventListener('pointerup', endStroke);
-  canvas.addEventListener('pointercancel', endStroke);
+  canvas.addEventListener('pointercancel', function(e){ activePointers = Math.max(0, activePointers - 1); endStroke(e); });
   canvas.addEventListener('pointerleave', function(e){ if (drawing) endStroke(e); });
 
   // 双指缩放 / 平移（用 touch 事件，因为 pointer 单指会触发书写）
   var pinch = null;
   view.addEventListener('touchstart', function(e) {
     if (e.touches.length === 2) {
+      pinching = true;
+      cancelDrawing();
+      activePointers = 2;
       pinch = {
         d0: dist(e.touches[0], e.touches[1]),
         scale0: scale,
@@ -1456,7 +1497,11 @@ renderQuestions();
   }, {passive:false});
   function dist(a, b) { var dx=a.clientX-b.clientX, dy=a.clientY-b.clientY; return Math.sqrt(dx*dx+dy*dy); }
   view.addEventListener('touchend', function(e) {
-    if (e.touches.length < 2) pinch = null;
+    if (e.touches.length < 2) {
+      pinch = null;
+      pinching = false;
+      activePointers = 0;
+    }
   });
 
   // 工具栏事件
@@ -1467,6 +1512,8 @@ renderQuestions();
   document.getElementById('skClear').addEventListener('click', function(){ pushUndo(); pages[curPage].strokes = []; renderPage(); save(); });
   document.getElementById('skAddPage').addEventListener('click', addPage);
   document.getElementById('skDelPage').addEventListener('click', delPage);
+  document.getElementById('skPrevPage').addEventListener('click', function(){ if (curPage > 0) { curPage--; renderPage(); save(); } });
+  document.getElementById('skNextPage').addEventListener('click', function(){ if (curPage < pages.length - 1) { curPage++; renderPage(); save(); } });
 
   function syncToolUI() {
     var pen = document.getElementById('skPen'), eraser = document.getElementById('skEraser');
@@ -1517,6 +1564,8 @@ renderQuestions();
   sizeInput.addEventListener('input', function(){ sizeBase = parseInt(this.value, 10) || 4; });
   var pInput = document.getElementById('skPressure');
   pInput.addEventListener('change', function(){ pressureOn = this.checked; });
+  var poInput = document.getElementById('skPenOnly');
+  poInput.addEventListener('change', function(){ penOnly = this.checked; });
 
   // 初始化尺寸 + 加载 + 渲染
   function skInit() {

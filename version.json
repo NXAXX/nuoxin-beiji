@@ -1,6 +1,6 @@
 ﻿{
-  "versionCode": 230,
-  "versionName": "2.30",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.30.apk",
-  "note": "新增学海导航(16本706章节)与天星母题(19册251章节)目录跳转，点章节直接打开PDF并可手写批注"
+  "versionCode": 231,
+  "versionName": "2.31",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.31.apk",
+  "note": "底部新增左右圆形翻页按钮(手指点一下即翻)；仅笔写模式下手指左右快划也能翻页；点顶部页码可直接跳页。画布手写/缩放/批注功能不受影响。"
 }

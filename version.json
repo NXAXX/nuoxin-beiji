@@ -1,6 +1,6 @@
 ﻿{
-  "versionCode": 233,
-  "versionName": "2.33",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.33.apk",
-  "note": "修复底图与画布对齐(FIT_START)；关闭上下滚动条与边缘拉伸光晕；新增索引版本自检(手机PDF页数与索引不符时弹窗提醒，防止跳错页)；相册式双指缩放；底部圆形翻页按钮；搜索精准定位。"
+  "versionCode": 234,
+  "versionName": "2.34",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.34.apk",
+  "note": "修复PDF显示范围：改为整页适配，一页完整铺满屏幕（不再需要上下滑动）；布局完成后自动重算尺寸；底图与画布严格对齐；关闭滚动条。"
 }

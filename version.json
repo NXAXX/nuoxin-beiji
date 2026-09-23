@@ -1,6 +1,6 @@
 ﻿{
-  "versionCode": 234,
-  "versionName": "2.34",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.34.apk",
-  "note": "修复PDF显示范围：改为整页适配，一页完整铺满屏幕（不再需要上下滑动）；布局完成后自动重算尺寸；底图与画布严格对齐；关闭滚动条。"
+  "versionCode": 235,
+  "versionName": "2.35",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.35.apk",
+  "note": "修复PDF页面缩小贴在左上角的问题：容器stage尺寸与位图严格同步；内容区尺寸拿不到时用屏幕尺寸兜底；打开即整页铺满显示。"
 }

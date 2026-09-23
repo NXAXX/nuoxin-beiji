@@ -1,6 +1,6 @@
 ﻿{
-  "versionCode": 235,
-  "versionName": "2.35",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.35.apk",
-  "note": "修复PDF页面缩小贴在左上角的问题：容器stage尺寸与位图严格同步；内容区尺寸拿不到时用屏幕尺寸兜底；打开即整页铺满显示。"
+  "versionCode": 236,
+  "versionName": "2.36",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.36.apk",
+  "note": "诊断版：打开PDF时左上角显示真实尺寸数值(屏幕/内容区/页点/位图/适配比)，请截图反馈以便精确定位显示问题。"
 }

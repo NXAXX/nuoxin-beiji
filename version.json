@@ -1,6 +1,6 @@
 ﻿{
-  "versionCode": 232,
-  "versionName": "2.32",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.32.apk",
-  "note": "双指缩放重做成相册式：捏哪放大哪、跟手不漂移、消除重影；放大上限提到8倍；底部圆形翻页按钮与单指快划翻页；搜索精准定位+命中提示条。"
+  "versionCode": 233,
+  "versionName": "2.33",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.33.apk",
+  "note": "修复底图与画布对齐(FIT_START)；关闭上下滚动条与边缘拉伸光晕；新增索引版本自检(手机PDF页数与索引不符时弹窗提醒，防止跳错页)；相册式双指缩放；底部圆形翻页按钮；搜索精准定位。"
 }

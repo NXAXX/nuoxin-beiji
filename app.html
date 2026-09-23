@@ -26,6 +26,10 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
                 padding:0 12px; font-size:15px; outline:none; }
 .search button { width:64px; height:38px; border:none; border-radius:0 8px 8px 0;
                  background:#1e6fff; color:#fff; font-size:15px; cursor:pointer; }
+/* 搜索命中提示条（告诉孩子搜到几条、当前第几条） */
+.hit-tip { display:none; position:fixed; top:140px; left:0; right:0; z-index:28;
+           background:#fff7e0; color:#8a5a00; border-bottom:1px solid #ffe0a3;
+           font-size:13px; line-height:1.5; padding:7px 12px; }
 /* 目录面板（全屏展开，不用动画，兼容旧机） */
 .toc-panel { display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:40; background:#fff; }
 .toc-panel.on { display:block; }
@@ -189,13 +193,14 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
 </head>
 <body>
 <div class="top">
-  <div class="title"><span class="menu-btn" id="menuBtn">☰</span>毛豆速记本 v2.29</div>
+  <div class="title"><span class="menu-btn" id="menuBtn">☰</span>毛豆速记本 v2.31</div>
   <div class="tabs" id="tabs"><button class="tab" data-subj="语文">语文</button><button class="tab" data-subj="英语">英语</button><button class="tab" data-subj="教材">教材</button><button class="tab" data-subj="学海导航">学海导航</button><button class="tab" data-subj="天星母题">天星母题</button><button class="tab" data-subj="草稿本">草稿本</button><button class="tab" data-subj="AI问答">AI 问答</button></div>
 </div>
 <div class="search">
-  <input id="q" type="text" placeholder="搜索当前科…" autocomplete="off">
+  <input id="q" type="text" placeholder="搜索当前科…（书名或章节关键词）" autocomplete="off">
   <button id="searchBtn">搜索</button>
 </div>
+<div id="hitTip" class="hit-tip"></div>
 
 <!-- 全屏目录面板 -->
 <div class="toc-panel" id="tocPanel">
@@ -389,10 +394,11 @@ function switchTo(name) {
   } else {
     searchBar.style.display = 'flex';
     toTop.style.display = 'none';
-    // 搜索框已清空，无需重新搜索/遍历 DOM（避免切换慢）
+    // 切换栏目：清空搜索状态与输入框（避免旧匹配指向上一栏的 DOM，搜索失效）
     searchTerm = '';
     searchMatches = [];
     searchIndex = 0;
+    try { q.value = ''; clearHl(); hideHitInfo(); } catch (e) {}
   }
   // 切到草稿本时，触发 canvas 尺寸重算 + 重绘当前页（面板从 display:none 变为可见后需要重算大小）
   if (name === '草稿本') { if (typeof skInit === 'function') skInit(); }
@@ -666,8 +672,7 @@ function findMatches() {
   searchTerm = v;
   clearHl();
   if (v === '') { return; }
-  var secs = getSecs();
-  // 教材栏目：搜「书名 .jc-book」和「章节 .jc-ch」的标题文本（结构与知识点科目不同）
+  // 「学海导航 / 天星母题 / 教材」栏目：搜「书名 .ent-name」+「章节 .jc-ch」
   var jcBooks = document.querySelectorAll('.jc-book');
   if (jcBooks.length > 0) {
     for (var b=0;b<jcBooks.length;b++) {
@@ -685,6 +690,7 @@ function findMatches() {
     }
     return;
   }
+  var secs = getSecs();
   for (var i=0;i<secs.length;i++) {
     var rows = secs[i].querySelectorAll('.kp, .w');
     if (rows.length > 0) {
@@ -708,17 +714,24 @@ function jumpToMatch() {
     findMatches();
     if (searchMatches.length === 0) { return; }
   }
-  // 清除上一个高亮
+  gotoNextMatch();
+}
+
+/** 跳转到下一个匹配项：展开所在书 + 高亮 + 滚动居中 + 提示第几条 */
+function gotoNextMatch() {
+  if (searchMatches.length === 0) { return; }
   clearHl();
   var el = searchMatches[searchIndex % searchMatches.length];
-  revealForSearch(el);
-  el.scrollIntoView();
-  el.style.background = '#ffd166';
+  expandForSearch(el);
+  scrollCentered(el);
+  markHit(el);
+  showHitInfo(el);
   searchIndex++;
 }
 
-// 跳转前：若目标在教材栏目的收起书里，先展开所属书，否则 scrollIntoView 无效
-function revealForSearch(el) {
+/** 跳转前：把目标的所有祖先折叠块全部【展开】（不是 toggle，否则第二次搜同一本书反而把它收起） */
+function expandForSearch(el) {
+  // 1) 展开所属的书（学海导航 / 天星母题 / 教材栏目）
   var p = el;
   while (p && p !== document) {
     if (p.classList && p.classList.contains('jc-book')) {
@@ -727,38 +740,89 @@ function revealForSearch(el) {
     }
     p = p.parentNode;
   }
+  // 2) 同时展开所有祖先里的可折叠块（section / ent），防止被别的折叠层挡住
+  var a = el.parentNode;
+  while (a && a !== document) {
+    if (a.classList && (a.classList.contains('ent') || a.tagName === 'SECTION')) {
+      a.classList.add('open');
+    }
+    a = a.parentNode;
+  }
+}
+
+/** 滚动到视口中央（比 scrollIntoView 更准，避免被吸顶的搜索框盖住） */
+function scrollCentered(el) {
+  try {
+    var r = el.getBoundingClientRect();
+    var box = content.getBoundingClientRect();
+    var offsetInBox = r.top - box.top + content.scrollTop;
+    var target = offsetInBox - content.clientHeight * 0.32;
+    if (target < 0) target = 0;
+    content.scrollTo({ top: target, behavior: 'smooth' });
+  } catch (e) {
+    el.scrollIntoView();
+  }
+}
+
+/** 高亮命中行（含书头） */
+function markHit(el) {
+  el.style.background = '#ffd166';
+  el.style.borderRadius = '6px';
+  el.style.boxShadow = '0 0 0 2px #ff9500';
+  try {
+    el.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.03)' }, { transform: 'scale(1)' }],
+      { duration: 260, easing: 'ease-out' });
+  } catch (e) {}
+}
+
+/** 搜索命中提示条：告诉孩子「第 n / 共 m 条」，防止以为没搜到 */
+function showHitInfo(el) {
+  var tip = document.getElementById('hitTip');
+  if (!tip) { return; }
+  var label = el.textContent.replace(/\s+/g, ' ').trim();
+  if (label.length > 26) { label = label.substring(0, 26) + '…'; }
+  tip.textContent = '找到 ' + searchMatches.length + ' 条｜第 ' + ((searchIndex % searchMatches.length) + 1)
+    + ' 条：' + label + '（再点「搜索」看下一条）';
+  tip.style.display = 'block';
+}
+
+function hideHitInfo() {
+  var tip = document.getElementById('hitTip');
+  if (tip) { tip.style.display = 'none'; }
 }
 
 function doSearch() {
   // 每点一次搜索：定位到下一个匹配（不隐藏其他内容）
   var v = q.value.trim().toLowerCase();
-  if (v !== searchTerm) {
-    // 关键词变了，重新收集匹配
-    searchTerm = v;
-    searchMatches = [];
-    searchIndex = 0;
-    findMatches();
-  }
   if (v === '') {
     clearHl();
+    hideHitInfo();
     content.scrollTop = 0;
     return;
   }
+  if (v !== searchTerm) {
+    // 关键词变了，重新收集匹配
+    findMatches();
+  }
   if (searchMatches.length === 0) {
     clearHl();
+    var tip0 = document.getElementById('hitTip');
+    if (tip0) {
+      tip0.textContent = '没找到「' + q.value.trim() + '」，换个词试试（可用书名或章节关键词）';
+      tip0.style.display = 'block';
+    }
     return;
   }
-  clearHl();
-  var el = searchMatches[searchIndex % searchMatches.length];
-  revealForSearch(el);
-  el.scrollIntoView();
-  el.style.background = '#ffd166';
-  searchIndex++;
+  gotoNextMatch();
 }
 
 function clearHl() {
   var hs = document.querySelectorAll('.kp, .w, section.sec, .jc-ch, .ent-name');
-  for (var i=0;i<hs.length;i++) { hs[i].style.background=''; }
+  for (var i=0;i<hs.length;i++) {
+    hs[i].style.background='';
+    hs[i].style.boxShadow='';
+    hs[i].style.borderRadius='';
+  }
 }
 document.getElementById('searchBtn').addEventListener('click', doSearch);
 q.addEventListener('keydown', function(e){ if(e.key === 'Enter') doSearch(); });
@@ -768,6 +832,7 @@ q.addEventListener('input', function(){
   searchMatches = [];
   searchIndex = 0;
   clearHl();
+  hideHitInfo();
 });
 
 // ===== AI 问答 板块逻辑 =====

@@ -1,6 +1,6 @@
-{
-  "versionCode": 229,
-  "versionName": "2.29",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.29.apk",
-  "note": "新增草稿本手写画板（压感/粗细/颜色/点擦+整线擦/缩放/多页/自动保存）；启动页固定在数理化生教材；AI问答提示词精简；raw直连自动更新"
+﻿{
+  "versionCode": 230,
+  "versionName": "2.30",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.30.apk",
+  "note": "新增学海导航(16本706章节)与天星母题(19册251章节)目录跳转，点章节直接打开PDF并可手写批注"
 }

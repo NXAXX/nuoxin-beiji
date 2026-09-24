@@ -1,6 +1,6 @@
 ﻿{
-  "versionCode": 239,
-  "versionName": "2.39",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.39.apk",
-  "note": "诊断版：页面顶部显示尺寸数值，请截图反馈以精确定位。"
+  "versionCode": 236,
+  "versionName": "2.36",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.36.apk",
+  "note": "回退到 2.36 稳定版"
 }

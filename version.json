@@ -1,6 +1,6 @@
 ﻿{
-  "versionCode": 242,
-  "versionName": "2.42",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.42.apk",
-  "note": "诊断信息并入顶部页码栏"
+  "versionCode": 243,
+  "versionName": "2.43",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.43.apk",
+  "note": "修复View未布局完成导致灰屏(控0x0)"
 }

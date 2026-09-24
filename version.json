@@ -1,6 +1,6 @@
-﻿{
-  "versionCode": 257,
-  "versionName": "2.57",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.57.apk",
-  "note": "修复边界计算用可视区宽高"
+{
+  "versionCode": 258,
+  "versionName": "2.58",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.58.apk",
+  "note": "版本号根治：标题栏版本号改为App启动时自动注入真实versionName，以后发版标题自动跟随APK"
 }

@@ -1,6 +1,6 @@
 ﻿{
-  "versionCode": 253,
-  "versionName": "2.53",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.53.apk",
-  "note": "setWillNotDraw(false) 修复 onDraw 不重绘"
+  "versionCode": 254,
+  "versionName": "2.54",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.54.apk",
+  "note": "底图批注层统一 setTranslation 平移"
 }

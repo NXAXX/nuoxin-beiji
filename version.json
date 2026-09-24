@@ -1,6 +1,6 @@
 ﻿{
-  "versionCode": 244,
-  "versionName": "2.44",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.44.apk",
-  "note": "诊断area布局尺寸"
+  "versionCode": 245,
+  "versionName": "2.45",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.45.apk",
+  "note": "root设MATCH_PARENT修复area高度0导致灰屏"
 }

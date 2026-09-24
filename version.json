@@ -1,6 +1,6 @@
 ﻿{
-  "versionCode": 245,
-  "versionName": "2.45",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.45.apk",
-  "note": "root设MATCH_PARENT修复area高度0导致灰屏"
+  "versionCode": 246,
+  "versionName": "2.46",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.46.apk",
+  "note": "overlay改入area修复高度0"
 }

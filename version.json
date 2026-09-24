@@ -1,6 +1,6 @@
 ﻿{
-  "versionCode": 249,
-  "versionName": "2.49",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.49.apk",
-  "note": "缩放诊断"
+  "versionCode": 250,
+  "versionName": "2.50",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.50.apk",
+  "note": "缩放改重渲染+去滑动翻页"
 }

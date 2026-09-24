@@ -1,6 +1,6 @@
 ﻿{
-  "versionCode": 236,
-  "versionName": "2.36",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.36.apk",
-  "note": "诊断版：打开PDF时左上角显示真实尺寸数值(屏幕/内容区/页点/位图/适配比)，请截图反馈以便精确定位显示问题。"
+  "versionCode": 237,
+  "versionName": "2.37",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.37.apk",
+  "note": "PDF显示彻底重构：不再依赖ScrollView自动布局，改用矩阵直接定位，页面必定铺满屏幕。"
 }

@@ -1,6 +1,6 @@
 ﻿{
-  "versionCode": 252,
-  "versionName": "2.52",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.52.apk",
-  "note": "平移诊断"
+  "versionCode": 253,
+  "versionName": "2.53",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.53.apk",
+  "note": "setWillNotDraw(false) 修复 onDraw 不重绘"
 }

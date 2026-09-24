@@ -1,6 +1,6 @@
 ﻿{
-  "versionCode": 240,
-  "versionName": "2.40",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.40.apk",
-  "note": "修复PDF空白：ScaleType从FIT_XY改为MATRIX（FIT_XY会忽略setImageMatrix导致图片不显示）"
+  "versionCode": 241,
+  "versionName": "2.41",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.41.apk",
+  "note": "修复PDF灰屏(自绘onDraw)+同步标题版本号2.41"
 }

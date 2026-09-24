@@ -1,6 +1,6 @@
 ﻿{
-  "versionCode": 254,
-  "versionName": "2.54",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.54.apk",
-  "note": "底图批注层统一 setTranslation 平移"
+  "versionCode": 255,
+  "versionName": "2.55",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.55.apk",
+  "note": "背景改浅色+去诊断"
 }

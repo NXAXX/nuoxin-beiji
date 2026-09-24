@@ -1,6 +1,6 @@
 {
-  "versionCode": 258,
-  "versionName": "2.58",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.58.apk",
-  "note": "版本号根治：标题栏版本号改为App启动时自动注入真实versionName，以后发版标题自动跟随APK"
+  "versionCode": 259,
+  "versionName": "2.59",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.59.apk",
+  "note": "版本号根治：标题栏版本号由App启动时onPageFinished注入真实versionName；同时app.html标题栏版本号加id=appVer span"
 }

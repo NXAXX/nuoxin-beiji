@@ -1,6 +1,6 @@
 ﻿{
-  "versionCode": 256,
-  "versionName": "2.56",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.56.apk",
-  "note": "底图设成位图同尺寸，放大后可平移看屏幕外内容"
+  "versionCode": 257,
+  "versionName": "2.57",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.57.apk",
+  "note": "修复边界计算用可视区宽高"
 }

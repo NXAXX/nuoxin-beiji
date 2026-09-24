@@ -1,6 +1,6 @@
 ﻿{
-  "versionCode": 237,
-  "versionName": "2.37",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.37.apk",
-  "note": "PDF显示彻底重构：不再依赖ScrollView自动布局，改用矩阵直接定位，页面必定铺满屏幕。"
+  "versionCode": 238,
+  "versionName": "2.38",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.38.apk",
+  "note": "修复PDF空白页：setImageBitmap后未应用矩阵变换。可视区尺寸改为显式传入，不再依赖控件测量。"
 }

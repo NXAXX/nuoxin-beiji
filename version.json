@@ -1,6 +1,6 @@
 ﻿{
-  "versionCode": 246,
-  "versionName": "2.46",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.46.apk",
-  "note": "overlay改入area修复高度0"
+  "versionCode": 247,
+  "versionName": "2.47",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.47.apk",
+  "note": "满屏fit修复+去诊断"
 }

@@ -1,6 +1,6 @@
 {
-  "versionCode": 263,
-  "versionName": "2.63",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.63.apk",
-  "note": "设备身份识别（家长=华为畅享90ProMax，其余算孩子）+ 调试显示本机型号；为云同步做准备"
+  "versionCode": 264,
+  "versionName": "2.64",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.64.apk",
+  "note": "云同步：孩子设备刷题基本统计（总题数/正确/错误/分科）自动同步到 GitHub 私有仓库，家长设备不参与"
 }

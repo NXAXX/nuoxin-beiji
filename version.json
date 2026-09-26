@@ -1,6 +1,6 @@
 {
-  "versionCode": 264,
-  "versionName": "2.64",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.64.apk",
-  "note": "云同步：孩子设备刷题基本统计（总题数/正确/错误/分科）自动同步到 GitHub 私有仓库，家长设备不参与"
+  "versionCode": 265,
+  "versionName": "2.65",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.65.apk",
+  "note": "孩子设备直接默认孩子，不再弹「你是老登」确认框（仅家长设备保留暗号认领）"
 }

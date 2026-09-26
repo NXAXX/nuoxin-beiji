@@ -253,7 +253,7 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
 </div></div><div class="panel" id="panel-AI问答"><h2>问老师 · 提意见 <button class="qa-back-btn" id="qaBackBtn" style="display:none;">← 返回原题</button></h2>
 <div class="qa-ask">
   <div class="qa-pin" id="qaPin" style="display:none;">
-    <div class="qa-pin-head"><span class="qa-pin-title">📌 当前题目</span><button class="qa-pin-copy" id="qaPinCopy">复制题目</button></div>
+    <div class="qa-pin-head"><span class="qa-pin-title">📌 当前题目</span></div>
     <div class="qa-pin-q" id="qaPinQ"></div>
   </div>
   <textarea id="qaText" placeholder="输入不懂的知识点，点【问 AI】询问就可以"></textarea>
@@ -1152,8 +1152,23 @@ function submitQuestion() {
   qaTip.textContent = '已提交，正在问 AI…';
   // ① 同时推送到家长微信（掌握孩子问了啥）——标题前缀【AI提问】
   sendToWechat(t, ts, '【AI提问】');
-  // ② 同时问 AI，答案回填
-  askAi(t, list.length - 1);
+  // ② 同时问 AI：若从速刷营「问AI」跳来（SS_CUR_ITEM 存在），把题目上下文一并传给 AI
+  var askText = t;
+  if (window.SS_CUR_ITEM) {
+    var ci = window.SS_CUR_ITEM;
+    var keys = ['A','B','C','D'];
+    var ctx = '【题目】' + ci.subj + '·' + ci.tag + '\n' + stripHtml(ci.q);
+    for (var i = 0; i < ci.o.length; i++) ctx += '\n' + keys[i] + '. ' + stripHtml(ci.o[i]);
+    ctx += '\n正确答案：' + keys[ci.a];
+    askText = ctx + '\n\n【我的问题】' + t;
+  }
+  askAi(askText, list.length - 1);
+}
+
+// 去除 HTML 标签得到纯文本（题目上下文传给 AI 用，保留 $...$ 形式的 LaTeX，AI 能读懂）
+function stripHtml(s) {
+  if (!s) return '';
+  return s.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 }
 
 // 问老登：孩子对 APP 的需求/错误意见建议 -> 只推家长微信（叫 prefix 区分），不问 AI
@@ -1684,23 +1699,13 @@ function ssReturnSketch() {
   if (pin) pin.style.display = 'none';
   if (typeof switchTo === 'function') switchTo('速刷营');
 }
-// 问AI：把整题（题干+选项+答案+解析）显示到大号题目卡片里，切到 AI 问答面板
-// 题目卡片（.qa-pin-q）可滚动看清全貌；同时把题目文字预填到输入框，方便孩子直接点「问 AI」
+// 问AI：把整题（题干+选项+答案）显示到大号题目卡片里（渲染好、可滚动看清全貌），切到 AI 问答面板
+// 输入框保持空白，让孩子自己输入要问的问题（不预填，避免把 LaTeX 原始代码 $...$/\frac 带进去）
 function ssOpenAi(item) {
   SS_CUR_ITEM = item;
   SS_FROM_SKETCH = true;
   var keys = ['A','B','C','D'];
-  // 纯文本版（预填输入框用）
-  var lines = [];
-  lines.push('【'+item.subj+'·'+item.tag+'】');
-  lines.push(item.q.replace(/<[^>]*>/g,''));
-  for (var i=0;i<item.o.length;i++) {
-    lines.push(keys[i]+'. '+item.o[i].replace(/<[^>]*>/g,''));
-  }
-  lines.push('正确答案：'+keys[item.a]);
-  lines.push('请帮我详细解析这道题，讲清楚为什么选这个答案、其他选项错在哪。');
-  var fullText = lines.join('\n');
-  // 1) 题目展示卡片（大号、可滚动、带格式）
+  // 题目展示卡片（大号、可滚动、带格式，公式已由 render_latex 转好）
   var pin = document.getElementById('qaPin');
   var pinQ = document.getElementById('qaPinQ');
   if (pin && pinQ) {
@@ -1714,13 +1719,7 @@ function ssOpenAi(item) {
     if (typeof renderMathIn === 'function') renderMathIn(pinQ);
     pin.style.display = 'block';
   }
-  // 2) 预填输入框（题目纯文本），孩子可直接点「问 AI」追问
-  var qaText = document.getElementById('qaText');
-  if (qaText) qaText.value = fullText;
-  // 3) 「复制题目」按钮：一键复制题目纯文本到输入框
-  var copyBtn = document.getElementById('qaPinCopy');
-  if (copyBtn) { copyBtn.onclick = function(){ if (qaText) { qaText.value = fullText; qaText.focus(); } }; }
-  // 4) 显示「返回原题」按钮
+  // 显示「返回原题」按钮
   var backBtn = document.getElementById('qaBackBtn');
   if (backBtn) { backBtn.style.display = 'inline-block'; backBtn.onclick = ssReturnFromAi; }
   // 切到 AI 问答

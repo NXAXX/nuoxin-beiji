@@ -1265,6 +1265,28 @@ function setAiAnswer(idx, text) {
 // 初始化
 renderQuestions();
 
+// ==================== 设备身份识别（家长/孩子） ====================
+// Java 端在 onPageFinished 注入 window.__DEVICE_MODEL / __DEVICE_MANUFACTURER
+// 规则：家长设备=华为畅享90ProMax；其余（nova12/matepad11/其他）都算孩子
+var USER_IDENTITY = '孩子';       // 默认孩子（宁可多算孩子，也别把家长数据混进孩子）
+var DEVICE_MODEL = '';
+(function initIdentity(){
+  try {
+    DEVICE_MODEL = window.__DEVICE_MODEL || '';
+    var mfr = (window.__DEVICE_MANUFACTURER || '').toLowerCase();
+    var m = DEVICE_MODEL.toLowerCase();
+    // 家长设备：华为畅享 90 Pro Max（型号串可能含「畅享」「changxiang」「90 pro」等）
+    if (mfr.indexOf('huawei') !== -1 && (m.indexOf('畅享') !== -1 || m.indexOf('changxiang') !== -1 || m.indexOf('90 pro') !== -1 || m.indexOf('90pro') !== -1)) {
+      USER_IDENTITY = '家长';
+    }
+  } catch(e) {}
+  // 调试显示：把型号+身份显示到 AI 问答页提示区（正式版可去掉或藏到统计页）
+  try {
+    var tip = document.getElementById('qaTip');
+    if (tip) { tip.textContent = '📱 本机：' + (DEVICE_MODEL || '未知') + ' · 身份：' + USER_IDENTITY + '（调试）' + '。' + tip.textContent; }
+  } catch(e2) {}
+})();
+
 // ==================== 草稿本 · 手写画板 ====================
 // 每个 stroke 存为对象：
 //   pen    -> {type:'pen', color, sizeBase, pts:[{x,y,p}]}    p=压感(0~1)

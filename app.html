@@ -1280,11 +1280,30 @@ var DEVICE_MODEL = '';
       USER_IDENTITY = '家长';
     }
   } catch(e) {}
-  // 调试显示：把型号+身份显示到 AI 问答页提示区（正式版可去掉或藏到统计页）
-  try {
-    var tip = document.getElementById('qaTip');
-    if (tip) { tip.textContent = '📱 本机：' + (DEVICE_MODEL || '未知') + ' · 身份：' + USER_IDENTITY + '（调试）' + '。' + tip.textContent; }
-  } catch(e2) {}
+// 调试显示：把型号+身份显示到 AI 问答页提示区（正式版可去掉或藏到统计页）
+  function _showIdentityTip(){
+    try {
+      var tip = document.getElementById('qaTip');
+      if (tip) { tip.textContent = '📱 本机：' + (DEVICE_MODEL || '未知') + ' · 身份：' + USER_IDENTITY + '（调试）' + '。' + tip.textContent; }
+    } catch(e2) {}
+  }
+  _showIdentityTip();
+  // Java 在 onPageFinished 才注入 __DEVICE_MODEL，比前端初始化晚 → 轮询几次等它注入
+  var _idRetry = 0;
+  var _idTimer = setInterval(function(){
+    try {
+      if (!window.__DEVICE_MODEL) { window.__DEVICE_MODEL = ''; }
+      var nm = window.__DEVICE_MODEL;
+      if (nm && nm !== DEVICE_MODEL) {
+        DEVICE_MODEL = nm;
+        var mfr = (window.__DEVICE_MANUFACTURER || '').toLowerCase();
+        var mm = nm.toLowerCase();
+        USER_IDENTITY = (mfr.indexOf('huawei') !== -1 && (mm.indexOf('畅享') !== -1 || mm.indexOf('changxiang') !== -1 || mm.indexOf('90 pro') !== -1 || mm.indexOf('90pro') !== -1)) ? '家长' : '孩子';
+        _showIdentityTip();
+      }
+    } catch(e) {}
+    if (++_idRetry >= 20) clearInterval(_idTimer);
+  }, 300);
 })();
 
 // ==================== 草稿本 · 手写画板 ====================

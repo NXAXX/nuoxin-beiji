@@ -635,6 +635,8 @@ var claimSent = false;       // 本轮是否已上报（避免重复弹框）
 
 function listenClaimSeq(name) {
   try {
+    // 只有家长设备（型号识别为「家长」）才保留「语英数」暗号认领；孩子设备直接不监听，永不弹「你是老登」框
+    if (typeof USER_IDENTITY !== 'undefined' && USER_IDENTITY !== '家长') return;
     if (claimSent) return;   // 已上报过，不再判断
     claimSeq.push(name);
     if (claimSeq.length > 3) claimSeq.shift();

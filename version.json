@@ -1,6 +1,6 @@
 {
-  "versionCode": 260,
-  "versionName": "2.60",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.60.apk",
-  "note": "版本号根治：标题栏版本号由App启动时onPageFinished注入真实versionName；同时app.html标题栏版本号加id=appVer span"
+  "versionCode": 261,
+  "versionName": "2.61",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.61.apk",
+  "note": "六科基础速刷营390题上线 + 免选文件夹（自动扫描内置存储「毛豆教材」目录，Android11+申请所有文件访问权限）"
 }

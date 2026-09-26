@@ -1285,8 +1285,17 @@ function _resolveIdentity(model){
   } catch(e) {}
   function _showIdentityTip(){
     try {
-      var tip = document.getElementById('qaTip');
-      if (tip) { tip.textContent = '📱 本机：' + (DEVICE_MODEL || '未知') + ' · 身份：' + USER_IDENTITY + '（调试）' + '。' + tip.textContent; }
+      // 用独立元素显示设备信息，绝不与 qaTip 原始说明文字叠加（避免重复）
+      var box = document.getElementById('qaDeviceBox');
+      if (!box) {
+        var tip = document.getElementById('qaTip');
+        if (!tip || !tip.parentNode) return;
+        box = document.createElement('div');
+        box.id = 'qaDeviceBox';
+        box.style.cssText = 'color:#888;font-size:12px;margin-bottom:6px;';
+        tip.parentNode.insertBefore(box, tip);
+      }
+      box.textContent = '📱 本机：' + (DEVICE_MODEL || '未知') + ' · 身份：' + USER_IDENTITY + '（调试）';
     } catch(e2) {}
   }
   _showIdentityTip();

@@ -1,6 +1,6 @@
 {
-  "versionCode": 262,
-  "versionName": "2.62",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.62.apk",
-  "note": "修复AI问答两处bug：①语文/英语题目英文被误当公式加$符号(改用纯文本渲染) ②问AI带入整题时输入框溢出(自动撑高)；教材退回手动选文件夹(鸿蒙免选不可行)"
+  "versionCode": 263,
+  "versionName": "2.63",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.63.apk",
+  "note": "设备身份识别（家长=华为畅享90ProMax，其余算孩子）+ 调试显示本机型号；为云同步做准备"
 }

@@ -1803,6 +1803,51 @@ function initSushuanying() {
     if($id('ssScoreTotal')) $id('ssScoreTotal').textContent = total;
   }
 
+  // ===== 云同步（增量跟踪 + 调 Java 原生请求） =====
+  var SYNC_DELTA_KEY = 'ss_sync_delta_v1';
+  function loadSyncDelta(){ try { return JSON.parse(localStorage.getItem(SYNC_DELTA_KEY)) || {}; } catch(e){ return {}; } }
+  function saveSyncDelta(d){ try { localStorage.setItem(SYNC_DELTA_KEY, JSON.stringify(d)); } catch(e){} }
+  function bumpSyncDelta(subj, ok){
+    if(typeof USER_IDENTITY !== 'undefined' && USER_IDENTITY === '家长') return; // 家长设备不同步
+    var d = loadSyncDelta();
+    d.total = (d.total||0) + 1;
+    d.correct = (d.correct||0) + (ok?1:0);
+    d.wrong = (d.wrong||0) + (ok?0:1);
+    d.by_subject = d.by_subject || {};
+    var bs = d.by_subject[subj] = d.by_subject[subj] || {total:0, correct:0, wrong:0};
+    bs.total += 1; if(ok) bs.correct += 1; else bs.wrong += 1;
+    saveSyncDelta(d);
+  }
+  function clearSyncDelta(){ try { localStorage.removeItem(SYNC_DELTA_KEY); } catch(e){} }
+  // 调 Java 拉云端累计（cb 收云端 JSON 字符串）
+  function syncPull(cb){
+    try { location.href = 'beiji://syncPull?cb=' + encodeURIComponent('ssSyncPullCb'); } catch(e){}
+    window.ssSyncPullCb = function(raw){
+      window.ssSyncPullCb = null;
+      if(cb) cb(raw || '');
+    };
+  }
+  // 调 Java 推送增量（把当前未同步增量上报云端做累加；成功回调清空本地增量）
+  function syncPush(cb){
+    var d = loadSyncDelta();
+    var hasData = (d.total && d.total>0);
+    if(!hasData){ if(cb) cb({skipped:true}); return; }
+    var deltas = JSON.stringify(d);
+    try { location.href = 'beiji://syncPush?deltas=' + encodeURIComponent(deltas) + '&cb=' + encodeURIComponent('ssSyncPushCb'); } catch(e){}
+    window.ssSyncPushCb = function(cloud){
+      window.ssSyncPushCb = null;
+      if(cloud && cloud.indexOf('"child"') !== -1){
+        clearSyncDelta(); // 上报成功，清空本地增量
+        if(cb) cb({ok:true, cloud:cloud});
+      } else {
+        if(cb) cb({ok:false});
+      }
+    };
+  }
+  // 暴露到全局，供全局 initCloudSync 调用
+  window.ssSyncPull = syncPull;
+  window.ssSyncPush = syncPush;
+
   // ===== 题库索引：id -> item =====
   function allItems(){ var r=[]; for(var s in SUSHUANYING_BANK){ r=r.concat(SUSHUANYING_BANK[s]); } return r; }
   var ITEM_MAP = {};
@@ -1887,6 +1932,7 @@ function initSushuanying() {
     prog[item.id] = p;
     saveProgress(prog);
     if(ok){ bumpScore(item.subj); updateScore(); }
+    bumpSyncDelta(item.subj, ok); // 云同步增量（不管对错都记，家长设备不记）
 
     var fb=$id('ssFeedback'); fb.style.display='block';
     if(ok){
@@ -2019,6 +2065,19 @@ function initSushuanying() {
   } else {
     next();
   }
+
+  // ===== 云同步触发（孩子在速刷营初始化时拉取云端累计 + 切走推送增量） =====
+  try {
+    if (typeof USER_IDENTITY !== 'undefined' && USER_IDENTITY !== '家长') {
+      // 拉取云端累计（用于展示，暂存到 window）
+      syncPull(function(raw){ try { window.SS_CLOUD = raw; } catch(e){} });
+      // 切走/退出时推送增量
+      var _doPush = function(){ try { syncPush(function(){}); } catch(e){} };
+      document.addEventListener('visibilitychange', function(){ if (document.hidden) _doPush(); });
+      window.addEventListener('pagehide', _doPush);
+      window.addEventListener('beforeunload', _doPush);
+    }
+  } catch(e) {}
 }
 </script>
 <script>

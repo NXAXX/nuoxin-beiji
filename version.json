@@ -1,6 +1,6 @@
 {
-  "versionCode": 265,
-  "versionName": "2.65",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.65.apk",
-  "note": "孩子设备直接默认孩子，不再弹「你是老登」确认框（仅家长设备保留暗号认领）"
+  "versionCode": 266,
+  "versionName": "2.66",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.66.apk",
+  "note": "每日8:00推送前一天刷题统计到家长微信（Server酱），只推孩子数据"
 }

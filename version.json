@@ -1,6 +1,6 @@
 {
-  "versionCode": 261,
-  "versionName": "2.61",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.61.apk",
-  "note": "六科基础速刷营390题上线 + 免选文件夹（自动扫描内置存储「毛豆教材」目录，Android11+申请所有文件访问权限）"
+  "versionCode": 262,
+  "versionName": "2.62",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.62.apk",
+  "note": "修复AI问答两处bug：①语文/英语题目英文被误当公式加$符号(改用纯文本渲染) ②问AI带入整题时输入框溢出(自动撑高)；教材退回手动选文件夹(鸿蒙免选不可行)"
 }

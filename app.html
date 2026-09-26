@@ -1267,20 +1267,22 @@ renderQuestions();
 
 // ==================== 设备身份识别（家长/孩子） ====================
 // Java 端在 onPageFinished 注入 window.__DEVICE_MODEL / __DEVICE_MANUFACTURER
-// 规则：家长设备=华为畅享90ProMax；其余（nova12/matepad11/其他）都算孩子
+// 规则：家长设备型号 = CHZ-AL00（爸爸手机）；其余（nova12=ADA-AL00、matepad11=DBY-W09 等）都算孩子
 var USER_IDENTITY = '孩子';       // 默认孩子（宁可多算孩子，也别把家长数据混进孩子）
 var DEVICE_MODEL = '';
+var PARENT_MODELS = ['chz-al00'];  // 家长设备型号白名单（小写）
+function _resolveIdentity(model){
+  var mm = (model || '').trim().toLowerCase();
+  for (var i = 0; i < PARENT_MODELS.length; i++) {
+    if (mm === PARENT_MODELS[i]) return '家长';
+  }
+  return '孩子';
+}
 (function initIdentity(){
   try {
     DEVICE_MODEL = window.__DEVICE_MODEL || '';
-    var mfr = (window.__DEVICE_MANUFACTURER || '').toLowerCase();
-    var m = DEVICE_MODEL.toLowerCase();
-    // 家长设备：华为畅享 90 Pro Max（型号串可能含「畅享」「changxiang」「90 pro」等）
-    if (mfr.indexOf('huawei') !== -1 && (m.indexOf('畅享') !== -1 || m.indexOf('changxiang') !== -1 || m.indexOf('90 pro') !== -1 || m.indexOf('90pro') !== -1)) {
-      USER_IDENTITY = '家长';
-    }
+    USER_IDENTITY = _resolveIdentity(DEVICE_MODEL);
   } catch(e) {}
-// 调试显示：把型号+身份显示到 AI 问答页提示区（正式版可去掉或藏到统计页）
   function _showIdentityTip(){
     try {
       var tip = document.getElementById('qaTip');
@@ -1292,13 +1294,10 @@ var DEVICE_MODEL = '';
   var _idRetry = 0;
   var _idTimer = setInterval(function(){
     try {
-      if (!window.__DEVICE_MODEL) { window.__DEVICE_MODEL = ''; }
-      var nm = window.__DEVICE_MODEL;
+      var nm = window.__DEVICE_MODEL || '';
       if (nm && nm !== DEVICE_MODEL) {
         DEVICE_MODEL = nm;
-        var mfr = (window.__DEVICE_MANUFACTURER || '').toLowerCase();
-        var mm = nm.toLowerCase();
-        USER_IDENTITY = (mfr.indexOf('huawei') !== -1 && (mm.indexOf('畅享') !== -1 || mm.indexOf('changxiang') !== -1 || mm.indexOf('90 pro') !== -1 || mm.indexOf('90pro') !== -1)) ? '家长' : '孩子';
+        USER_IDENTITY = _resolveIdentity(nm);
         _showIdentityTip();
       }
     } catch(e) {}

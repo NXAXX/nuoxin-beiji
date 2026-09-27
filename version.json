@@ -1,6 +1,6 @@
 {
-  "versionCode": 272,
-  "versionName": "2.72",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.72.apk",
-  "note": "支持多选题(标注+多选交互+提交判定)"
+  "versionCode": 273,
+  "versionName": "2.73",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.73.apk",
+  "note": "修复问AI返回答题后丢失单科定点刷状态"
 }

@@ -1919,38 +1919,15 @@ function initSushuanying() {
 
   // ===== 选下一题：闯关队列优先 > 连续错题高频推送 > 未练题 > 已掌握淡出 =====
   function pickNext(){
-    var prog = loadProgress();
-    // 1) 闯关队列优先
-    if(chainQueue.length){ var cid = chainQueue.shift(); var ci = ITEM_MAP[cid]; if(ci) return ci; }
     var arr = pool();
     if(!arr.length) return null;
-    // 2) 连续错题高频推送：优先从未掌握(wrong>0 且未 mastered)的题里选，错得越多越靠前
+    var prog = loadProgress();
+    // 当天做错的题当天不再推送（第二天再练），其余随机抽
     var _today0 = (function(){ var d=new Date(); d.setHours(0,0,0,0); return d.getTime(); })();
     var _todayEnd = _today0 + 86400000;
-    var wrongPool = arr.filter(function(it){ var p=prog[it.id]; return p && p.wrong>0 && !p.mastered && !(p.lastWrong && p.lastWrong>=_today0 && p.lastWrong<_todayEnd); });
-    if(wrongPool.length){
-      // 按错误次数降序排序，错得越多越优先（真正不懂的连续反复推送）
-      wrongPool.sort(function(a,b){ var pa=prog[a.id]||{wrong:0}, pb=prog[b.id]||{wrong:0}; return pb.wrong-pa.wrong; });
-      // 高频错题大概率优先：前 30% 错题里随机抽（加权向错题多的靠）
-      var topN = Math.max(1, Math.floor(wrongPool.length * 0.3));
-      if(Math.random() < 0.75){
-        return wrongPool[Math.floor(Math.random()*topN)];
-      }
-      // 否则从全部错题里抽
-      if(Math.random() < 0.5){
-        return wrongPool[Math.floor(Math.random()*wrongPool.length)];
-      }
-    }
-    // 3) 未练过的题优先（保证覆盖）
-    var freshPool = arr.filter(function(it){ return !prog[it.id]; });
-    if(freshPool.length && Math.random()<0.7){
-      return freshPool[Math.floor(Math.random()*freshPool.length)];
-    }
-    // 4) 已掌握的题放最后（暂时淡出，偶尔穿插）
-    var masteredPool = arr.filter(function(it){ var p=prog[it.id]; return p && p.mastered; });
-    var otherPool = arr.filter(function(it){ var p=prog[it.id]; return !p || !p.mastered; });
-    var pool2 = otherPool.length ? otherPool : arr;
-    return pool2[Math.floor(Math.random()*pool2.length)];
+    var cand = arr.filter(function(it){ var p=prog[it.id]; return !(p && p.lastWrong && p.lastWrong>=_today0 && p.lastWrong<_todayEnd); });
+    if(!cand.length) cand = arr; // 若全部都是今天做错的，则回退到全部（避免无题可选）
+    return cand[Math.floor(Math.random()*cand.length)];
   }
 
   // ===== 渲染题目 =====
@@ -1964,13 +1941,8 @@ function initSushuanying() {
     if (answered) window.SS_LOCK = null; // 消费掉锁死标记，之后正常出题不再锁死
     $id('ssFeedback').style.display='none'; $id('ssNext').style.display='none';
     $id('ssEmpty').style.display='none'; $id('ssCard').style.display='block';
-    // 闯关提示
-    if(chainQueue.length){
-      $id('ssChainHint').style.display='flex';
-      $id('ssChainHint').innerHTML='<span class="ss-chain-badge">变式闯关</span><span>巩固「'+item.tag+'」· 还剩 '+chainQueue.length+' 题</span>';
-    } else {
-      $id('ssChainHint').style.display='none';
-    }
+    // 无闯关提示（已移除变式闯关机制，简化流程）
+    $id('ssChainHint').style.display='none';
     $id('ssTag').textContent = item.subj + ' · ' + item.tag + ' · ' + item.type;
     $id('ssQ').innerHTML = item.q;
     var keys=['A','B','C','D']; var h='';
@@ -2018,7 +1990,7 @@ function initSushuanying() {
       });
     }
     $id('ssNext').style.display='block';
-    $id('ssNextBtn').textContent = chainQueue.length ? '继续闯关 ▶' : '下一题 ▶';
+    $id('ssNextBtn').textContent = '下一题 ▶';
     if(typeof renderMathIn==='function'){ renderMathIn(fb); }
   }
 
@@ -2039,32 +2011,11 @@ function initSushuanying() {
 
     // 答对触发奖励拼图
     if(ok){ bumpReward(); }
-    // 答错时把该知识点剩余变式插入闯关队列
-    if(!ok){ enqueueChain(item); }
-
     finalizeAnswer(item, chosen, ok, p);
   }
-// ===== 变式闯关：答错母题/变式，把该知识点剩余变式（未掌握）压入队首 =====
-  function enqueueChain(item){
-    var ids = CHAIN[item.tag] || [];
-    var prog = loadProgress();
-    var toAdd = [];
-    for(var i=0;i<ids.length;i++){
-      var id=ids[i];
-      if(id===item.id) continue;
-      // 只加入未掌握的变式/母题，且不在当前队列里
-      var p = prog[id];
-      if(p && p.mastered) continue;
-      if(chainQueue.indexOf(id)>=0) continue;
-      // 只加变式（type 变式），不加其它母题，避免无限套娃
-      var it=ITEM_MAP[id];
-      if(it && it.type!=='母题') toAdd.push(id);
-    }
-    // 去重后压入队首（保证先练变式再回主队列）
-    chainQueue = toAdd.concat(chainQueue);
-  }
+// （变式闯关机制已移除，enqueueChain 不再使用）
 
-  function next(){ var item=pickNext(); if(!item){ $id('ssCard').style.display='none'; $id('ssEmpty').style.display='block'; if(mode==='single' && !(SUSHUANYING_BANK[singleSubj]||[]).length){ $id('ssEmpty').textContent='「'+singleSubj+'」题库建设中，敬请期待'; } else { $id('ssEmpty').textContent='题库为空'; } return; } renderItem(item); }
+  function next(){ window.SS_FROM_SKETCH = false; window.SS_LOCK = null; var item=pickNext(); if(!item){ $id('ssCard').style.display='none'; $id('ssEmpty').style.display='block'; if(mode==='single' && !(SUSHUANYING_BANK[singleSubj]||[]).length){ $id('ssEmpty').textContent='「'+singleSubj+'」题库建设中，敬请期待'; } else { $id('ssEmpty').textContent='题库为空'; } return; } renderItem(item); }
 
   // ===== 统计面板 =====
   function renderStat(){

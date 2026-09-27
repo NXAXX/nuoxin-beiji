@@ -1,6 +1,6 @@
 {
-  "versionCode": 268,
-  "versionName": "2.68",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.68.apk",
-  "note": "全量题库8981题+奖励拼图孩子模式9轮递进+错题锁死+问AI防作弊"
+  "versionCode": 269,
+  "versionName": "2.69",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.69.apk",
+  "note": "修复旧缓存回退问题(版本升级自动清缓存)+清空同步+默认速刷营+统计仅家长"
 }

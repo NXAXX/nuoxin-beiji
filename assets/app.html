@@ -1696,7 +1696,7 @@ function _resolveIdentity(model){
   if (document.getElementById('panel-草稿本').classList.contains('on')) { skInit(); }
 })();
 
-switchTo('教材');
+switchTo('速刷营');
 </script>
 <script>
 // ===== 全科基础速刷营：刷题逻辑（全局函数，切到速刷营时由 switchTo 调用）=====
@@ -2154,6 +2154,9 @@ function initSushuanying() {
   $id('ssStatBtn').addEventListener('click', toggleStat);
   // 清空记录：仅家长设备显示（孩子设备隐藏，防孩子自行清空刷题/拼图/错题记录）
   var _isParent = (typeof USER_IDENTITY !== 'undefined' && USER_IDENTITY === '家长');
+  // 统计按钮 + 清空按钮都仅家长设备显示（孩子设备隐藏，简化界面；孩子数据后台统计即可）
+  var _statBtn = $id('ssStatBtn');
+  if (_statBtn) { _statBtn.style.display = _isParent ? '' : 'none'; }
   var _resetSec = (function(){ var b=$id('ssResetBtn'); return b ? b.parentNode : null; })();
   if (_resetSec) { _resetSec.style.display = _isParent ? '' : 'none'; }
   $id('ssResetBtn').addEventListener('click', function(){
@@ -2164,6 +2167,9 @@ function initSushuanying() {
     localStorage.removeItem(STORE_KEY);
     localStorage.removeItem(SCORE_KEY);
     localStorage.removeItem('ss_reward_v1'); // 同时重置奖励拼图进度
+    localStorage.removeItem(SYNC_DELTA_KEY); // 清空未同步增量
+    // 家长清空：推送云端清空指令（reset_token=时间戳），孩子设备下次同步时自动全清
+    try { location.href = 'beiji://resetPush?token=' + Date.now(); } catch(e){}
     $id('ssResetBtn').style.display='';
     $id('ssResetConfirm').style.display='none';
     updateScore();
@@ -2190,7 +2196,24 @@ function initSushuanying() {
   try {
     if (typeof USER_IDENTITY !== 'undefined' && USER_IDENTITY !== '家长') {
       // 拉取云端累计（用于展示，暂存到 window）
-      syncPull(function(raw){ try { window.SS_CLOUD = raw; } catch(e){} });
+      syncPull(function(raw){
+        try { window.SS_CLOUD = raw; } catch(e){}
+        // 检测家长清空指令：云端 reset_token > 本地已处理 token 时，全清孩子本地记录
+        try {
+          if (raw && raw.indexOf('reset_token') !== -1) {
+            var _cloud = JSON.parse(raw);
+            var _rt = _cloud.reset_token || 0;
+            var _last = parseInt(localStorage.getItem('ss_last_reset_token') || '0', 10) || 0;
+            if (_rt > _last) {
+              localStorage.removeItem('ss_progress_v1');
+              localStorage.removeItem('ss_score_v1');
+              localStorage.removeItem('ss_reward_v1');
+              localStorage.removeItem('ss_sync_delta_v1');
+              localStorage.setItem('ss_last_reset_token', String(_rt));
+            }
+          }
+        } catch(e){}
+      });
       // 切走/退出时推送增量
       var _doPush = function(){ try { syncPush(function(){}); } catch(e){} };
       document.addEventListener('visibilitychange', function(){ if (document.hidden) _doPush(); });

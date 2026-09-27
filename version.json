@@ -1,6 +1,6 @@
 {
-  "versionCode": 270,
-  "versionName": "2.70",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.70.apk",
-  "note": "修复首次进速刷营卡加载+统计按钮闪现"
+  "versionCode": 271,
+  "versionName": "2.71",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.71.apk",
+  "note": "修复公式渲染顺序(switchTo移到最后)"
 }

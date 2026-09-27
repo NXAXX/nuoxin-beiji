@@ -1,6 +1,6 @@
 {
-  "versionCode": 274,
-  "versionName": "2.74",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.74.apk",
-  "note": "新增【大题思维范式】栏目（六科34题型解题方法论+物理配图试点）"
+  "versionCode": 275,
+  "versionName": "2.75",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.75.apk",
+  "note": "大题思维范式增加返回顶部按钮（悬浮+底部）"
 }

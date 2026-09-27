@@ -1,6 +1,6 @@
 {
-  "versionCode": 271,
-  "versionName": "2.71",
-  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.71.apk",
-  "note": "修复公式渲染顺序(switchTo移到最后)"
+  "versionCode": 272,
+  "versionName": "2.72",
+  "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.72.apk",
+  "note": "支持多选题(标注+多选交互+提交判定)"
 }

@@ -193,7 +193,7 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
 </head>
 <body>
 <div class="top">
-  <div class="title"><span class="menu-btn" id="menuBtn">☰</span>毛豆速记本 <span id="appVer">v2.72</span></div>
+  <div class="title"><span class="menu-btn" id="menuBtn">☰</span>毛豆速记本 <span id="appVer">v2.73</span></div>
   <div class="tabs" id="tabs"><button class="tab" data-subj="教材">教材</button><button class="tab" data-subj="学海导航">学海导航</button><button class="tab" data-subj="天星母题">天星母题</button><button class="tab" data-subj="速刷营">速刷营</button><button class="tab" data-subj="草稿本">草稿本</button><button class="tab" data-subj="AI问答">AI 问答</button></div>
 </div>
 <div class="search">
@@ -1719,6 +1719,8 @@ var SUSHUANYING_BANK = {"语文": [{"id": "语文_0_m", "subj": "语文", "tag":
 var SS_CUR_ITEM = null;   // 当前正在做的题（跨切栏保留）
 var SS_FROM_SKETCH = false; // 是否从草稿本返回（恢复原题继续做）
 var SS_FROM_AI = false; // 是否从问AI返回（返回后直接出全新题）
+var SS_MODE = 'mix';        // 当前刷题模式（mix 全科 / single 单科），跨切栏保留
+var SS_SINGLE_SUBJ = '物理'; // 单科定点刷的科目，跨切栏保留
 function ssOpenSketch(item) {
   SS_CUR_ITEM = item;
   SS_FROM_SKETCH = true;
@@ -1795,8 +1797,8 @@ function initSushuanying() {
   var $id = function(id){ return document.getElementById(id); };
   var STORE_KEY = 'ss_progress_v1';
   var MASTER_STREAK = 3; // 连续答对 3 次判定掌握
-  var mode = 'mix';
-  var singleSubj = '物理';
+  var mode = window.SS_MODE || 'mix';
+  var singleSubj = window.SS_SINGLE_SUBJ || '物理';
   var answered = false;
   // 锁死标记存 window.SS_LOCK（跨面板切换保留）；initSushuanying 每次重跑，局部变量会丢，故用全局
   var chainQueue = []; // 变式闯关队列（答错后插入同知识点变式）
@@ -2201,13 +2203,14 @@ function initSushuanying() {
     }
   }
 // ===== 事件绑定 =====
-  $id('ssMix').addEventListener('click', function(){ mode='mix'; this.classList.add('on'); $id('ssSingle').classList.remove('on'); $id('ssSingleBar').style.display='none'; next(); });
-  $id('ssSingle').addEventListener('click', function(){ mode='single'; this.classList.add('on'); $id('ssMix').classList.remove('on'); $id('ssSingleBar').style.display='flex'; next(); });
+  $id('ssMix').addEventListener('click', function(){ mode='mix'; window.SS_MODE='mix'; this.classList.add('on'); $id('ssSingle').classList.remove('on'); $id('ssSingleBar').style.display='none'; next(); });
+  $id('ssSingle').addEventListener('click', function(){ mode='single'; window.SS_MODE='single'; this.classList.add('on'); $id('ssMix').classList.remove('on'); $id('ssSingleBar').style.display='flex'; next(); });
   // 六科定点切换（动态循环绑定）
   var ssSubjBtns = $id('ssSingleBar').querySelectorAll('.ss-subj');
   for (var _bi=0;_bi<ssSubjBtns.length;_bi++){
     ssSubjBtns[_bi].addEventListener('click', function(){
       singleSubj = this.getAttribute('data-subj');
+      window.SS_SINGLE_SUBJ = singleSubj;
       for (var _bj=0;_bj<ssSubjBtns.length;_bj++) ssSubjBtns[_bj].classList.remove('on');
       this.classList.add('on');
       next();
@@ -2239,6 +2242,24 @@ function initSushuanying() {
     $id('ssResetBtn').style.display='';
     $id('ssResetConfirm').style.display='none';
   });
+
+  // ===== 恢复模式 UI（切走再切回时，根据全局 SS_MODE/SS_SINGLE_SUBJ 恢复按钮高亮与单科栏）=====
+  (function _restoreModeUI(){
+    if(mode === 'single'){
+      $id('ssMix').classList.remove('on');
+      $id('ssSingle').classList.add('on');
+      $id('ssSingleBar').style.display = 'flex';
+    } else {
+      $id('ssMix').classList.add('on');
+      $id('ssSingle').classList.remove('on');
+      $id('ssSingleBar').style.display = 'none';
+    }
+    var _sb = $id('ssSingleBar').querySelectorAll('.ss-subj');
+    for(var _k=0;_k<_sb.length;_k++){
+      if(_sb[_k].getAttribute('data-subj') === singleSubj){ _sb[_k].classList.add('on'); }
+      else { _sb[_k].classList.remove('on'); }
+    }
+  })();
 
   // 出题：问AI返回→出全新题；草稿本返回→恢复原题继续做；否则随机出新题
   if(window.SS_FROM_AI){

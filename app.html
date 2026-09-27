@@ -1708,6 +1708,7 @@ var SS_FROM_SKETCH = false; // 是否从草稿本/AI 返回（用于恢复原题
 function ssOpenSketch(item) {
   SS_CUR_ITEM = item;
   SS_FROM_SKETCH = true;
+  window.SS_LOCK = { id: item.id, chosen: window.SS_LAST_CHOSEN }; // 草稿本返回后锁死该题
   // 先切到草稿本（触发 ensurePanel 注入草稿本 DOM + skInit），再定格题目
   if (typeof switchTo === 'function') switchTo('草稿本');
   var pin = document.getElementById('skPin');
@@ -1741,6 +1742,7 @@ function stripHtml(s) {
 function ssOpenAi(item) {
   SS_CUR_ITEM = item;
   SS_FROM_SKETCH = true;
+  window.SS_LOCK = { id: item.id, chosen: window.SS_LAST_CHOSEN }; // 问AI返回后锁死该题
   var keys = ['A','B','C','D'];
   // 用干净纯文本拼题（优先 q_raw/o_raw，兼容旧数据无 raw 字段时回退 stripHtml）
   var q = (item.q_raw != null && item.q_raw !== '') ? item.q_raw : stripHtml(item.q);
@@ -1779,7 +1781,7 @@ function initSushuanying() {
   var mode = 'mix';
   var singleSubj = '物理';
   var answered = false;
-  var answeredMap = {}; // item.id -> chosen 索引（跨「问AI/草稿本」跳转保留已答状态，返回后锁死不可重选）
+  // 锁死标记存 window.SS_LOCK（跨面板切换保留）；initSushuanying 每次重跑，局部变量会丢，故用全局
   var chainQueue = []; // 变式闯关队列（答错后插入同知识点变式）
   var curItem = null;
 
@@ -1923,7 +1925,9 @@ function initSushuanying() {
     var arr = pool();
     if(!arr.length) return null;
     // 2) 连续错题高频推送：优先从未掌握(wrong>0 且未 mastered)的题里选，错得越多越靠前
-    var wrongPool = arr.filter(function(it){ var p=prog[it.id]; return p && p.wrong>0 && !p.mastered; });
+    var _today0 = (function(){ var d=new Date(); d.setHours(0,0,0,0); return d.getTime(); })();
+    var _todayEnd = _today0 + 86400000;
+    var wrongPool = arr.filter(function(it){ var p=prog[it.id]; return p && p.wrong>0 && !p.mastered && !(p.lastWrong && p.lastWrong>=_today0 && p.lastWrong<_todayEnd); });
     if(wrongPool.length){
       // 按错误次数降序排序，错得越多越优先（真正不懂的连续反复推送）
       wrongPool.sort(function(a,b){ var pa=prog[a.id]||{wrong:0}, pb=prog[b.id]||{wrong:0}; return pb.wrong-pa.wrong; });
@@ -1953,9 +1957,11 @@ function initSushuanying() {
   function renderItem(item){
     curItem = item;
     window.SS_CUR_ITEM = item; // 供草稿本跳转恢复用
-    // 若本题本次会话已答过（点错后问AI/草稿本返回），恢复「已答锁死」状态，不能重新选
-    var prevChosen = answeredMap[item.id];
+    // 仅当从「问AI/草稿本」返回且回到刚跳转的那道题时，恢复「已答锁死」状态；正常下一题不锁死
+    var _lock = window.SS_LOCK;
+    var prevChosen = (_lock && _lock.id === item.id) ? _lock.chosen : undefined;
     answered = (prevChosen !== undefined);
+    if (answered) window.SS_LOCK = null; // 消费掉锁死标记，之后正常出题不再锁死
     $id('ssFeedback').style.display='none'; $id('ssNext').style.display='none';
     $id('ssEmpty').style.display='none'; $id('ssCard').style.display='block';
     // 闯关提示
@@ -2018,13 +2024,13 @@ function initSushuanying() {
 
   function answerItem(item, chosen){
     answered=true;
-    answeredMap[item.id] = chosen; // 记录本次选择，返回原题后锁死
+    window.SS_LAST_CHOSEN = chosen; // 记录本次选择，供问AI/草稿本返回时锁死恢复用
     var ok = (chosen===item.a);
     // 更新进度
     var prog = loadProgress();
     var p = prog[item.id] || {correct:0, wrong:0, streak:0, mastered:false, last:0};
     if(ok){ p.correct++; p.streak++; if(p.streak>=MASTER_STREAK) p.mastered=true; }
-    else { p.wrong++; p.streak=0; p.mastered=false; }
+    else { p.wrong++; p.streak=0; p.mastered=false; p.lastWrong = Date.now(); }
     p.last = Date.now();
     prog[item.id] = p;
     saveProgress(prog);

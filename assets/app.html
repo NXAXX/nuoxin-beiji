@@ -397,9 +397,9 @@ function switchTo(name) {
   // 特殊面板（AI问答）隐藏搜索框+显示返回顶部按钮，学科面板显示搜索框+隐藏返回顶部按钮
   var searchBar = document.querySelector('.search');
   var toTop = document.getElementById('toTop');
-  if (name === 'AI问答' || name === '草稿本' || name === '速刷营' || name === '大题思维范式') {
+  if (name === 'AI问答') {
     searchBar.style.display = 'none';
-    toTop.style.display = 'none';
+    toTop.style.display = 'block';   // 仅 AI问答 显示返回顶部按钮
   } else {
     searchBar.style.display = 'flex';
     toTop.style.display = 'none';
@@ -636,6 +636,8 @@ var claimWindows = ['教材', '学海导航', '天星母题'];  // 暗号顺序
 var claimSent = false;       // 本轮是否已上报（避免重复弹框）
 
 function listenClaimSeq(name) {
+  // 已改用设备型号识别家长/孩子（USER_IDENTITY），取消「语英数」暗号认领弹窗（不再弹「你是老登」）
+  return;
   try {
     // 只有家长设备（型号识别为「家长」）才保留「语英数」暗号认领；孩子设备直接不监听，永不弹「你是老登」框
     if (typeof USER_IDENTITY !== 'undefined' && USER_IDENTITY !== '家长') return;

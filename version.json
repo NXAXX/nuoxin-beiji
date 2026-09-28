@@ -1,6 +1,6 @@
 {
-  "versionCode": 277,
-  "versionName": "2.77",
+  "versionCode": 278,
+  "versionName": "2.78",
   "apkUrl": "https://raw.githubusercontent.com/NXAXX/nuoxin-beiji/main/maodou_v2.77.apk",
   "note": "修复大题思维范式返回顶部按钮（滚动容器改为#content），按钮固定在屏幕下部"
 }

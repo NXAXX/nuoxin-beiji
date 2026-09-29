@@ -2440,7 +2440,7 @@ function initMaodou() {
   var REVIEW_OFFSETS = [1, 3, 7, 15, 30];
   function dayNum(){ var d=new Date(); d.setHours(0,0,0,0); return Math.floor(d.getTime()/86400000); }
 
-  function loadProg(){ try { return JSON.parse(localStorage.getItem(PROG_KEY)) || {}; } catch(e){ return {}; } }
+  function loadProg(){ try { var p = JSON.parse(localStorage.getItem(PROG_KEY)) || {}; if(!p.kingdoms) p.kingdoms = {}; return p; } catch(e){ return { kingdoms:{} }; } }
   function saveProg(p){ try { localStorage.setItem(PROG_KEY, JSON.stringify(p)); } catch(e){} }
   function loadGrow(){ try { var g=JSON.parse(localStorage.getItem(GROW_KEY)); if(g && g.exp!=null) return g; } catch(e){} return { exp:0, level:1, atk:1, def:0, wis:0, equip:{weapon:'',armor:'',trinket:''} }; }
   function saveGrow(g){ try { localStorage.setItem(GROW_KEY, JSON.stringify(g)); } catch(e){} }
@@ -3240,6 +3240,8 @@ function initMaodou() {
 
   render();
 }
+
+
 
 
 

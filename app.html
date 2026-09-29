@@ -144,7 +144,34 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
 .sk-pin-q .sk-pin-opt b { color:#1e6fff; margin-right:4px; }
 
 /* AI 问答 板块 */
-.qa-back-btn { margin-left:8px; padding:4px 12px; border:1px solid #1e6fff; border-radius:16px; background:#fff; color:#1e6fff; font-size:13px; cursor:pointer; vertical-align:middle; }
+/* 智者人像 banner（魔幻世界风格） */
+.qa-hero { display:flex; align-items:center; gap:14px; padding:16px 14px; border-radius:16px;
+  background:linear-gradient(135deg,#3b2a6e 0%,#5b3fa8 55%,#7c5cd6 100%);
+  box-shadow:0 6px 20px rgba(91,63,168,.35); margin-bottom:14px; position:relative; overflow:hidden; }
+.qa-hero::before { content:''; position:absolute; inset:0;
+  background:radial-gradient(circle at 80% 10%, rgba(255,255,255,.22), transparent 45%),
+             radial-gradient(circle at 15% 90%, rgba(255,215,130,.18), transparent 40%); pointer-events:none; }
+.qa-hero-avatar { width:58px; height:58px; flex:0 0 58px; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #ffe9b8, #f0b94a 60%, #c8862a);
+  display:flex; align-items:center; justify-content:center; font-size:34px;
+  box-shadow:0 0 0 3px rgba(255,255,255,.35), 0 0 18px rgba(255,200,90,.6);
+  animation: qaFloat 3s ease-in-out infinite; position:relative; z-index:1; }
+@keyframes qaFloat { 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-5px); } }
+.qa-hero-body { flex:1; position:relative; z-index:1; }
+.qa-hero-name { font-size:17px; font-weight:800; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,.3); letter-spacing:.5px; }
+.qa-hero-line { font-size:12px; color:#e6dcff; margin-top:4px; line-height:1.5; }
+.qa-hero .qa-back-btn { position:relative; z-index:1; flex:0 0 auto; margin-left:0; background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.45); color:#fff; }
+.qa-ask { background:linear-gradient(180deg,#f4f1ff 0%,#fbfaff 100%); border:1px solid #e6dffa; border-radius:16px; padding:14px; box-shadow:0 3px 12px rgba(91,63,168,.08); }
+.qa-ask textarea { width:100%; height:200px; border:1px solid #d8cef5; border-radius:12px;
+                   padding:12px; font-size:16px; resize:vertical; outline:none; box-sizing:border-box; display:block; min-height:120px; line-height:1.6;
+                   background:#fff; color:#2f2a3d; }
+.qa-ask textarea:focus { border-color:#8b5cf6; box-shadow:0 0 0 3px rgba(139,92,246,.15); }
+.qa-bar { display:flex; gap:10px; margin-top:12px; }
+.qa-bar .mic { flex:1; height:44px; border:none; border-radius:12px; background:#5ac8fa; color:#fff; font-size:15px; cursor:pointer; }
+.qa-bar .send { flex:1; height:46px; border:none; border-radius:14px;
+  background:linear-gradient(135deg,#8b5cf6,#6d28d9); color:#fff; font-size:16px; font-weight:700; cursor:pointer;
+  box-shadow:0 4px 14px rgba(109,40,217,.35); letter-spacing:1px; }
+.qa-bar .send:active { transform:scale(.97); }
 /* 题目展示卡片：大区域、可滚动，让孩子看清完整题目（题干+选项+答案+解析） */
 .qa-pin { background:#fff7ed; border:1px solid #fbd38d; border-radius:10px; padding:10px 12px; margin-bottom:10px; }
 .qa-pin-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
@@ -153,12 +180,6 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
 .qa-pin-q { font-size:15px; line-height:1.7; color:#1f2329; word-break:break-word; overflow-wrap:anywhere; max-height:45vh; overflow-y:auto; white-space:pre-wrap; }
 .qa-pin-q .qa-pin-opt { display:block; margin-top:4px; color:#4b5563; }
 .qa-pin-q .qa-pin-opt b { color:#1e6fff; margin-right:4px; }
-.qa-ask textarea { width:100%; height:200px; border:1px solid #dcdfe6; border-radius:8px;
-                   padding:12px; font-size:16px; resize:vertical; outline:none; box-sizing:border-box; display:block; min-height:120px; line-height:1.6; }
-.qa-bar { display:flex; gap:10px; margin-top:10px; }
-.qa-bar .mic { flex:1; height:40px; border:none; border-radius:8px; background:#5ac8fa; color:#fff; font-size:15px; cursor:pointer; }
-.qa-bar .send { flex:1; height:40px; border:none; border-radius:8px; background:#1e6fff; color:#fff; font-size:15px; cursor:pointer; }
-.qa-bar .send-dad { background:#f59e0b; }
 .qa-tip { margin-top:10px; font-size:13px; color:#8a94a6; min-height:18px; }
 .qa-list-head { display:flex; justify-content:space-between; align-items:center; margin-top:14px; }
 .qa-list-title { font-size:13px; color:#1f2329; font-weight:600; }
@@ -179,10 +200,6 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
 .qa-item .qa-a .qa-table th { background:#eef3ff; font-weight:600; }
 .qa-item .qa-a .qa-table tr:nth-child(even) td { background:#fafbfc; }
 .qa-item .qa-time { font-size:11px; color:#b0b5bd; margin-top:4px; }
-/* 问老登（意见建议）：单行 + 超长省略 */
-.qa-dad { margin-bottom:10px; }
-.qa-dad .qa-q-oneline { background:#fdf3e3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:left; }
-.qa-dad-tag { color:#f59e0b; font-weight:600; margin-right:4px; }
 /* KaTeX 公式排版（内联，离线） */
 .katex { font-size:1.05em; }
 .kp-c .katex, .kp-warn .katex, .kp-mem .katex { margin:0 1px; }
@@ -250,16 +267,22 @@ body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
     </div>
   </div>
   <div class="sk-footer" id="skFooter">第 1 / 1 页 · 笔书写 · 两指缩放</div>
-</div></div><div class="panel" id="panel-AI问答"><h2>问老师 · 提意见 <button class="qa-back-btn" id="qaBackBtn" style="display:none;">← 返回答题</button></h2>
-<div class="qa-ask">
-  <textarea id="qaText" placeholder="输入不懂的知识点，点【问 AI】询问就可以"></textarea>
-  <div class="qa-bar">
-    <button class="send send-dad" id="dadBtn">问老登</button>
-    <button class="send" id="sendBtn">问 AI</button>
+</div></div><div class="panel" id="panel-AI问答"><div class="qa-hero">
+  <div class="qa-hero-avatar" id="qaHeroAvatar">🧙</div>
+  <div class="qa-hero-body">
+    <div class="qa-hero-name">大智者 · 毛豆长老</div>
+    <div class="qa-hero-line">✨ 迷途的求知者，把你的困惑告诉我，我来为你指点迷津</div>
   </div>
-  <div class="qa-tip" id="qaTip">💡 想语音？点输入框用键盘 🎤 说话。不懂的知识点点【问 AI】，对 APP 的需求/错误点【问老登】发给我。</div>
-  <div class="qa-list-head"><span class="qa-list-title">问答记录</span><button class="qa-clear" id="clearBtn">🗑 清空</button></div>
-  <div class="qa-list" id="qaList"><div class="empty">还没有记录，把不懂的写进来问 AI 吧</div></div>
+  <button class="qa-back-btn" id="qaBackBtn" style="display:none;">← 返回答题</button>
+</div>
+<div class="qa-ask">
+  <textarea id="qaText" placeholder="输入不懂的知识点，向智者提问…"></textarea>
+  <div class="qa-bar">
+    <button class="send" id="sendBtn">🧙 向智者提问</button>
+  </div>
+  <div class="qa-tip" id="qaTip">💡 想语音？点输入框用键盘 🎤 说话。把不懂的知识点写进来，向智者提问。</div>
+  <div class="qa-list-head"><span class="qa-list-title">📜 问答记录</span><button class="qa-clear" id="clearBtn">🗑 清空</button></div>
+  <div class="qa-list" id="qaList"><div class="empty">还没有记录，把不懂的写进来问智者吧</div></div>
 </div></div>
   </div>
 </div>
@@ -1163,30 +1186,12 @@ function submitQuestion() {
   askAi(t, list.length - 1);
 }
 
-// 问老登：孩子对 APP 的需求/错误意见建议 -> 只推家长微信（叫 prefix 区分），不问 AI
-function submitToDad() {
-  var t = qaText.value.trim();
-  if (t === '') { qaTip.textContent = '请先写想对爸爸说的话'; return; }
-  var time = new Date();
-  var ts = time.getFullYear() + '-' + pad(time.getMonth()+1) + '-' + pad(time.getDate()) + ' ' + pad(time.getHours()) + ':' + pad(time.getMinutes());
-  // 写入 localStorage（倒序渲染，只保留问题一行，答案用「已发给爸爸」标记）
-  var list = loadQuestions();
-  list.push({ q: t, a: '', t: ts, dad: true });
-  saveQuestions(list);
-  renderQuestions();
-  qaText.value = '';
-  qaTip.textContent = '正在发送给爸爸…';
-  // 标题前缀【意见建议】区分于【AI提问】
-  sendToWechat(t, ts, '【意见建议】');
-}
+// 问老登已删除（用户 2026-09-29 要求去掉问老登按钮及其功能）
 function pad(n){ return n < 10 ? '0' + n : '' + n; }
 function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
 
 var sendBtn = document.getElementById('sendBtn');
 sendBtn.addEventListener('click', submitQuestion);
-
-var dadBtn = document.getElementById('dadBtn');
-if (dadBtn) { dadBtn.addEventListener('click', submitToDad); }
 
 // 一键清空问答记录
 var clearBtn = document.getElementById('clearBtn');
@@ -2448,10 +2453,21 @@ function initMaodou() {
     if(old) old.parentNode.removeChild(old);
     var d = document.createElement('div');
     d.id = 'mdouToast';
-    d.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(43,30,74,.92);color:#fff;padding:14px 20px;border-radius:12px;font-size:15px;z-index:99999;max-width:80%;text-align:center;line-height:1.6;box-shadow:0 8px 30px rgba(0,0,0,.3);';
-    d.textContent = msg;
+    d.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(43,30,74,.95);color:#fff;padding:18px 22px 16px;border-radius:16px;font-size:15px;z-index:99999;max-width:84%;text-align:center;line-height:1.7;box-shadow:0 10px 40px rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.12);';
+    var t = document.createElement('div');
+    t.textContent = msg;
+    d.appendChild(t);
+    var b = document.createElement('button');
+    b.textContent = '知道了';
+    b.style.cssText = 'margin-top:12px;padding:7px 26px;border:none;border-radius:20px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;font-size:14px;cursor:pointer;font-weight:700;';
+    d.appendChild(b);
     document.body.appendChild(d);
-    setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); }, 2200);
+    var isWarn = msg.indexOf('❌')>=0 || msg.indexOf('⚠️')>=0 || msg.indexOf('没过')>=0;
+    function close(){ if(d.parentNode) d.parentNode.removeChild(d); }
+    b.onclick = close;
+    d.onclick = function(ev){ if(ev.target === d) close(); };
+    // 警告/错误类提示停留更久，让孩子看清正确答案再点；普通提示也加长
+    setTimeout(close, isWarn ? 6000 : 3500);
   }
 
   // 成长：加经验，升级涨属性
@@ -3125,16 +3141,11 @@ function initMaodou() {
     var askWiseBtn = $id('mdouAskWiseBtn');
     Array.prototype.forEach.call(markOpts, function(opt){
       opt.onclick = function(){
-        if(st.eliteStepChanges >= 2){ showTip('⚠️ 这一步你已经改了 2 次啦，毛豆让你先确认当前选择，别乱点碰运气哦～'); return; }
+        // 多选标记题：自由勾选/取消勾选，不因点选项次数而锁死（正确做法是点多次凑齐答案）
         var mi = parseInt(opt.getAttribute('data-mi'),10);
         var idx = selected.indexOf(mi);
         if(idx >= 0){ selected.splice(idx,1); opt.className='mdou-mark-opt'; }
         else { selected.push(mi); opt.className='mdou-mark-opt sel'; }
-        st.eliteStepChanges++;
-        var left = 2 - st.eliteStepChanges;
-        var ind = body.querySelector('.mdou-chg-left');
-        if(ind) ind.textContent = '（本步还可改 '+(left>0?left:0)+' 次）';
-        if(left <= 0){ Array.prototype.forEach.call(markOpts, function(o){ o.style.opacity='0.5'; o.style.pointerEvents='none'; }); }
         // 问智者按钮同步：已选至少1项才可用
         askWiseBtn.disabled = (selected.length === 0);
       };
@@ -3155,6 +3166,9 @@ function initMaodou() {
         // 答错：不前进，必须重做这步直到答对（错题记入记忆曲线，下次闯关中途杀出重做）
         var ansTxt = [];
         for(var k2=0;k2<step.answer.length;k2++){ ansTxt.push(step.options[step.answer[k2]]); }
+        st.eliteStepChanges++;
+        var chgInd = body.querySelector('.mdou-chg-left');
+        if(chgInd){ var lf = 2 - st.eliteStepChanges; chgInd.textContent = '（本步还可改 '+(lf>0?lf:0)+' 次）'; }
         showTip('❌ 标记不准确，这步没过哦。正确答案：'+ansTxt.join('、')+'。请重做这步～');
         st.eliteStepChanges = 0;
         // 记入记忆曲线（精英审题错题）

@@ -2967,13 +2967,20 @@ function initMaodou() {
           screenFlash('red');
           var k = kingdomById(st.kingdomId);
           addWrong(k.subject, st.chapterId, q.tag, q);
-          expHtml += '<div class="mdou-exp bad"><div class="mdou-exp-title">💥 怪物反击！已记入记仇怪，之后会偷袭你～</div>'+escHtml(q.exp || q.tip || '解析缺失')+'</div>';
+          expHtml += '<div class="mdou-exp bad"><div class="mdou-exp-title">💥 怪物反击！这道题必须答对才能过关，看看解析弄懂它～</div>'+escHtml(q.exp || q.tip || '解析缺失')+'</div>';
         }
-        expHtml += '<div class="mdou-foot"><button class="mdou-btn mdou-btn-primary" id="mdouNext">下一只 →</button>'
-          + '<button class="mdou-btn mdou-btn-wise" id="mdouAskWiseBtn">🤖 问智者</button></div>';
+        if(correct){
+          expHtml += '<div class="mdou-foot"><button class="mdou-btn mdou-btn-primary" id="mdouNext">下一只 →</button>'
+            + '<button class="mdou-btn mdou-btn-wise" id="mdouAskWiseBtn">🤖 问智者</button></div>';
+        } else {
+          expHtml += '<div class="mdou-foot"><button class="mdou-btn mdou-btn-primary" id="mdouNext">🔁 重新挑战</button>'
+            + '<button class="mdou-btn mdou-btn-wise" id="mdouAskWiseBtn">🤖 问智者</button></div>';
+        }
         $id('mdouExp').innerHTML = expHtml;
         $id('mdouNext').onclick = function(){
-          st.waveIdx++;
+          if(correct){
+            st.waveIdx++;
+          }
           st.answered = false;
           if(st.playerHp <= 0){
             showTip('😿 血量耗尽！毛豆陪你回去休整，下次再来挑战吧～');
@@ -3395,6 +3402,8 @@ function initMaodou() {
   loadState();
   render();
 }
+
+
 
 
 
